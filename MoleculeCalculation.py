@@ -36,7 +36,8 @@ def createAtomicBases(Lvals, Svals, Ivals):
     return (lsiBasisRef, jiBasisRef, fBasisRef, 
             np.kron(lsiBasisRef,lsiBasisRef), np.kron(jiBasisRef,jiBasisRef), np.kron(fBasisRef,fBasisRef))
 
-def createCaseABasis_MostlySym(Lvals, Svals, Ivals, sigmavals=["g","u"]):
+def createCaseABasis_MostlySym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None):
+    # Jv is only used for rotational calculations
     # does not include the planar reflection symmetry sigma_v2. 
     boBasisRef = []
     for sigma in sigmavals:
@@ -52,13 +53,17 @@ def createCaseABasis_MostlySym(Lvals, Svals, Ivals, sigmavals=["g","u"]):
                                                                   "sigma": sigma, "S":Sv, "Sigma":Sigma,
                                                                   "i":I, "iota":iota, "i1":i1, "i2":i2,
                                                                   "Omega":Sigma+Lambda, "phi": Sigma+Lambda+iota })
+                                        if Jv is not None:
+                                            state.update({'J':Jv})
                                         if state not in boBasisRef:
                                             boBasisRef.append(state)
     boBasisRef = list(sorted(boBasisRef, key=lambda state: 1e5 * abs(state["phi"]) 
                              + 1e2 * abs(state['Omega']) + 1 * abs(state['Sigma'])))
     return boBasisRef
 
-def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"]):
+
+
+def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None):
     boBasisRef = []
     for sigma in sigmavals:
         for Lv in Lvals:
@@ -78,6 +83,8 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"]):
                                                                           "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
                                                                           "|Omega|":abs(Omega), "phi":phi , 
                                                                           "sigma_vxz": sigmav, 'sigma_v2xz':sigmav*(-1)**(Iv-iota)})
+                                                if Jv is not None:
+                                                    state.update({'J':Jv})
                                                 if state not in boBasisRef:
                                                     boBasisRef.append(state)
                                         elif Omega != 0 and phi == 0:
@@ -87,6 +94,8 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"]):
                                                                               "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
                                                                               "|Omega|":abs(Omega), "phi":phi , 
                                                                               "sigma_vxz": (-1)**(Lv-Lambda+Sv-Sigma), 'sigma_v2xz':sigmav2})
+                                                    if Jv is not None:
+                                                        state.update({'J':Jv})
                                                     if state not in boBasisRef:
                                                         boBasisRef.append(state)
                                         else:
@@ -96,6 +105,8 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"]):
                                                                       "|Omega|":abs(Omega), "phi": phi, 
                                                                       "sigma_vxz": (-1)**(Lv-Lambda+Sv-Sigma), 
                                                                       "sigma_v2xz":(-1)**(Lv-Lambda+Sv-Sigma+Iv-iota) })
+                                            if Jv is not None:
+                                                state.update({'J':Jv})
                                             if state not in boBasisRef:
                                                 boBasisRef.append(state)
     boBasisRef = list(sorted(boBasisRef, key=lambda state: abs(state["|Omega|"])))
@@ -111,7 +122,7 @@ def convertH_toCaseABasis(states, H_, offset=-1/2):
     for num, _ in enumerate(states):
         coupleM[num,num] = offset
     for num1, state1 in enumerate(states):
-        misc.reportProgress(num1, len(states))
+        #misc.reportProgress(num1, len(states))
         for num2, state2 in enumerate(states):
             matElem = state2.T@H_@state1
             coupleM[num1,num2] += matElem
