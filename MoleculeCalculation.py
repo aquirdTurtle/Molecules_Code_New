@@ -45,13 +45,13 @@ def createCaseABasis_MostlySym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None
             for Lambda in np.arange(-Lv,Lv+1,1):
                 for Sv in Svals:
                     for Sigma in np.arange(-Sv, Sv+1,1):
-                        for i1 in Ivals:
-                            for i2 in Ivals:
-                                for I in np.arange(abs(i2-i1), i2+i1+1,1):
+                        for i_a in Ivals:
+                            for i_b in Ivals:
+                                for I in np.arange(abs(i_b-i_a), i_b+i_a+1,1):
                                     for iota in np.arange(-I,I+1,1):
                                         state = multiplyableDict({"L":Lv, "Lambda": Lambda, 
                                                                   "sigma": sigma, "S":Sv, "Sigma":Sigma,
-                                                                  "i":I, "iota":iota, "i1":i1, "i2":i2,
+                                                                  "i":I, "iota":iota, "i_a":i_a, "i_b":i_b,
                                                                   "Omega":Sigma+Lambda, "phi": Sigma+Lambda+iota })
                                         if Jv is not None:
                                             state.update({'J':Jv})
@@ -72,9 +72,9 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=N
             for Lambda in np.arange(-Lv,Lv+1,1):
                 for Sv in Svals:
                     for Sigma in np.arange(-Sv, Sv+1,1):
-                        for i1 in Ivals:
-                            for i2 in Ivals:
-                                for Iv in np.arange(abs(i2-i1), i2+i1+1,1):
+                        for i_a in Ivals:
+                            for i_b in Ivals:
+                                for Iv in np.arange(abs(i_b-i_a), i_b+i_a+1,1):
                                     for iota in np.arange(-Iv,Iv+1,1):
                                         Omega = Sigma+Lambda
                                         phi  = Sigma+Lambda+iota
@@ -82,7 +82,7 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=N
                                             for sigmav in [-1,1]:
                                                 state = multiplyableDict({"L":Lv, "|Lambda|": abs(Lambda), 
                                                                           "sigma": sigma, "S":Sv, "|Sigma|":abs(Sigma),
-                                                                          "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
+                                                                          "i":Iv, "|iota|":abs(iota), "i_a":i_a, "i_b":i_b,
                                                                           "|Omega|":abs(Omega), "phi":phi , 
                                                                           "sigma_vxz": sigmav, 'sigma_v2xz':sigmav*(-1)**(Iv-iota)})
                                                 if Jv is not None:
@@ -95,7 +95,7 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=N
                                                 for sigmav2 in [-1,1]:
                                                     state = multiplyableDict({"L":Lv, "|Lambda|": abs(Lambda), 
                                                                               "sigma": sigma, "S":Sv, "|Sigma|":abs(Sigma), 
-                                                                              "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
+                                                                              "i":Iv, "|iota|":abs(iota), "i_a":i_a, "i_b":i_b,
                                                                               "|Omega|":abs(Omega), "phi":phi , 
                                                                               "sigma_vxz": (-1)**(Lv-Lambda+Sv-Sigma), 'sigma_v2xz':sigmav2})
                                                     if Jv is not None:
@@ -107,7 +107,7 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=N
                                         else:
                                             state = multiplyableDict({"L":Lv, "|Lambda|": abs(Lambda), 
                                                                       "sigma": sigma, "S":Sv, "|Sigma|":abs(Sigma), 
-                                                                      "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
+                                                                      "i":Iv, "|iota|":abs(iota), "i_a":i_a, "i_b":i_b,
                                                                       "|Omega|":abs(Omega), "phi": phi, 
                                                                       "sigma_vxz": (-1)**(Lv-Lambda+Sv-Sigma), 
                                                                       "sigma_v2xz":(-1)**(Lv-Lambda+Sv-Sigma+Iv-iota) })
@@ -300,14 +300,14 @@ def caseAToAtomic( oalNums, spinNums, nuclearNums, sigma, lsiBasis, basisChange=
 
 def create_HfsH(basis, E_5P12_F1F2_splitting, E_HFS_5S12_F1F2_splitting, F3E, F2E, F1E, F0E):
     # basis: expects a two-particle basis, so each element of the basis should 
-    # have F_1, mF_1, J_1, I_1, and F_2, mF_2, J_2, I_2 values.
+    # have Fz, mF_1, J_1, I_1, and F_2, mF_2, J_2, I_2 values.
     # A_5P12_F1F2: The D1 line excited state hyperfine splitting (energy between 5P_{1/2},F=1 and F=2)
     # F3E, F2E, F1E, F0E: the energies of the 5P_{3/2} F=3,2,1,0 manifolds. In this case, unlike in 
     # the fine-structure case, because there are four energy levels perturbations to the energy levels 
     # can't be captured in a single "A" constant, so instead I use the actual energy values 
     # (F3E, F2E, F1E, F0E)
     op = np.zeros((len(basis),len(basis)))
-    #f1,mf1,j1,i1,f2,mf2,j2,i2 = [0 for _ in range(8)]
+    #f1,mf1,j1,i_a,f2,mf2,j2,i_b = [0 for _ in range(8)]
     names = ['F','mF','J','I']
     for s1num, state1 in enumerate(basis):
         # unpack the actual values of the quantum numbers:
@@ -317,12 +317,12 @@ def create_HfsH(basis, E_5P12_F1F2_splitting, E_HFS_5S12_F1F2_splitting, F3E, F2
             qNums[num+4] = state1[name+"_2"]
         #for num, name in enumerate(names):
         #    qNums[num+4] = state1[name+"_2"]
-        f1,mf1,j1,i1,f2,mf2,j2,i2 = qNums
+        f1,mf1,j1,i_a,f2,mf2,j2,i_b = qNums
         # calculate the energies of the individual atoms and add.
         A1 = E_5P12_F1F2_splitting if state1["L_1"] == 1 else E_HFS_5S12_F1F2_splitting
-        E1 = A1/2 * (f1*(f1+1)-j1*(j1+1)-i1*(i1+1)) if state1["J_1"] != 3/2 else (F3E if f1==3 else (F2E if f1==2 else (F1E if f1==1 else F0E)))
+        E1 = A1/2 * (f1*(f1+1)-j1*(j1+1)-i_a*(i_a+1)) if state1["J_1"] != 3/2 else (F3E if f1==3 else (F2E if f1==2 else (F1E if f1==1 else F0E)))
         A2 = E_5P12_F1F2_splitting if state1["L_2"] == 1 else E_HFS_5S12_F1F2_splitting
-        E2 = A2/2 * (f2*(f2+1)-j2*(j2+1)-i2*(i2+1)) if state1["J_2"] != 3/2 else (F3E if f2==3 else (F2E if f2==2 else (F1E if f2==1 else F0E)))
+        E2 = A2/2 * (f2*(f2+1)-j2*(j2+1)-i_b*(i_b+1)) if state1["J_2"] != 3/2 else (F3E if f2==3 else (F2E if f2==2 else (F1E if f2==1 else F0E)))
         # the matrix is diagonal in the given basis.
         op[s1num,s1num] = E1 + E2
     return op
@@ -391,6 +391,6 @@ def getColumnState(basis, quantumNums):
 def stateLabel(state):
     label = ""
     for key, val in state.items():
-        if key != 'L' and key != 'phi' and key != 'i1' and key != 'i2':
+        if key != 'L' and key != 'phi' and key != 'i_a' and key != 'i_b':
             label += key + ":" + str(val) + ", "
     return label
