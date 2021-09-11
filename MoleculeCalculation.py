@@ -12,92 +12,100 @@ u = 1
 # Creating Bases
 # ##################
     
-def createAtomicBases(Lvals, Svals, Ivals):
+def createAtomicBases(lvals, svals, ivals):
+    """
+    Important notational note here. This function creates a *single atom* basis. 
+    As such it is agnostic as to what nuclear center the basis is for, and so I 
+    use an "x" subscript, which will be later changed to a/b when I construct the multi-particle basis. 
+    Instead I continue to rely on that the notation of lower case letters is for a single particle quantum number
+    and the upper case refer to joint quantum numbers (i.e. L = l_a + l_b). This _x business is just a mechanism 
+    to construct the multiparticle basis.
+    """
     lsiBasisRef, jiBasisRef, fBasisRef = [], [], []
-    for Lv in Lvals:
-        for Sv in Svals:
-            Jvals = set(np.arange(abs(Sv - Lv), Sv + Lv+1, 1))
-            for Jv in Jvals:
-                for Iv in Ivals:
-                    FVals = set(np.arange(abs(Jv - Iv), Jv + Iv+1, 1))
-                    for Fv in FVals:
-                        for mf in np.arange(-Fv,Fv+1,1):
-                            fBasisRef.append(multiplyableDict({"F":Fv, "mF": mf, "J":Jv, "L":Lv, "S":Sv, "I":Iv}))
-                for mJ in np.arange(-Jv,Jv+1,1):
-                    for Iv in Ivals:
-                        for mi in np.arange(-Iv,Iv+1,1):
-                            jiBasisRef.append(multiplyableDict({"J":Jv, "mJ":mJ, "L":Lv, "S":Sv, "I":Iv, "mI":mi}))    
-        for mL in np.arange(-Lv,Lv+1,1):
-            for Sv in Svals:
-                for mS in np.arange(-Sv, Sv+1,1):
-                    for Iv in Ivals:
-                        for mi in np.arange(-Iv,Iv+1,1):
-                            lsiBasisRef.append(multiplyableDict({"L":Lv, "mL":mL, "S":Sv, "mS":mS, "I":Iv, "mI":mi}))
+    for l_ in lvals:
+        for s_ in svals:
+            jvals = set(np.arange(abs(s_ - l_), s_ + l_+1, 1))
+            for j_ in jvals:
+                for i_ in ivals:
+                    fVals = set(np.arange(abs(j_ - i_), j_ + i_+1, 1))
+                    for f_ in fVals:
+                        for m_f in np.arange(-f_,f_+1,1):
+                            fBasisRef.append(multiplyableDict({"f_x":f_, "m_f_x": m_f, "j_x":j_, "l_x":l_, "s_x":s_, "i_x":i_}))
+                for m_j in np.arange(-j_,j_+1,1):
+                    for i_ in ivals:
+                        for m_i in np.arange(-i_,i_+1,1):
+                            jiBasisRef.append(multiplyableDict({"j_x":j_, "m_j_x":m_j, "l_x":l_, "s_x":s_, "i_x":i_, "m_i_x":m_i}))    
+        for m_l in np.arange(-l_,l_+1,1):
+            for s_ in svals:
+                for m_s in np.arange(-s_, s_+1,1):
+                    for i_ in ivals:
+                        for m_i in np.arange(-i_,i_+1,1):
+                            lsiBasisRef.append(multiplyableDict({"l_x":l_, "m_l_x":m_l, "s_x":s_, "m_s_x":m_s, "i_x":i_, "m_i_x":m_i}))
     return (lsiBasisRef, jiBasisRef, fBasisRef, 
             np.kron(lsiBasisRef,lsiBasisRef), np.kron(jiBasisRef,jiBasisRef), np.kron(fBasisRef,fBasisRef))
 
-def createCaseABasis_MostlySym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=None):
-    # Jv is only used for rotational calculations
+def createCaseABasis_MostlySym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None, Fv=None):
+    # Jv and Fv are only used for rotational calculations.
     # does not include the planar reflection symmetry sigma_v2. 
     boBasisRef = []
     for sigma in sigmavals:
-        for Lv in Lvals:
-            for Lambda in np.arange(-Lv,Lv+1,1):
-                for Sv in Svals:
-                    for Sigma in np.arange(-Sv, Sv+1,1):
-                        for i1 in Ivals:
-                            for i2 in Ivals:
-                                for I in np.arange(abs(i2-i1), i2+i1+1,1):
-                                    for iota in np.arange(-I,I+1,1):
-                                        state = multiplyableDict({"L":Lv, "Lambda": Lambda, 
-                                                                  "sigma": sigma, "S":Sv, "Sigma":Sigma,
-                                                                  "i":I, "iota":iota, "i1":i1, "i2":i2,
-                                                                  "Omega":Sigma+Lambda, "phi": Sigma+Lambda+iota })
+        for L_ in Lvals:
+            for Lambda in np.arange(-L_,L_+1,1):
+                for S_ in Svals:
+                    for Sigma in np.arange(-S_, S_+1,1):
+                        for i_a in ivals:
+                            for i_b in ivals:
+                                for I_ in np.arange(abs(i_b-i_a), i_b+i_a+1,1):
+                                    for Iota in np.arange(-I_,I_+1,1):
+                                        state = multiplyableDict({"L":L_, "Lambda": Lambda, 
+                                                                  "sigma": sigma, "S":S_, "Sigma":Sigma,
+                                                                  "I":I_, "Iota":Iota, "i_a":i_a, "i_b":i_b,
+                                                                  "Omega":Sigma+Lambda, "Phi": Sigma+Lambda+Iota })
                                         if Jv is not None:
                                             state.update({'J':Jv})
                                         if Fv is not None:
                                             state.update({'F':Fv})
                                         if state not in boBasisRef:
                                             boBasisRef.append(state)
-    boBasisRef = list(sorted(boBasisRef, key=lambda state: 1e5 * abs(state["phi"]) 
+    boBasisRef = list(sorted(boBasisRef, key=lambda state: 1e5 * abs(state["Phi"]) 
                              + 1e2 * abs(state['Omega']) + 1 * abs(state['Sigma'])))
     return boBasisRef
 
 
 
-def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=None):
+def createCaseABasis_Sym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None, Fv=None):
     boBasisRef = []
     for sigma in sigmavals:
-        for Lv in Lvals:
-            for Lambda in np.arange(-Lv,Lv+1,1):
-                for Sv in Svals:
-                    for Sigma in np.arange(-Sv, Sv+1,1):
-                        for i1 in Ivals:
-                            for i2 in Ivals:
-                                for Iv in np.arange(abs(i2-i1), i2+i1+1,1):
-                                    for iota in np.arange(-Iv,Iv+1,1):
+        for L_ in Lvals:
+            for Lambda in np.arange(-L_,L_+1,1):
+                for S_ in Svals:
+                    for Sigma in np.arange(-S_, S_+1,1):
+                        for i_a in ivals:
+                            for i_b in ivals:
+                                for I_ in np.arange(abs(i_b-i_a), i_b+i_a+1,1):
+                                    for Iota in np.arange(-I_,I_+1,1):
                                         Omega = Sigma+Lambda
-                                        phi  = Sigma+Lambda+iota
+                                        Phi  = Sigma+Lambda+Iota
                                         if Lambda != 0 and Omega==0:
                                             for sigmav in [-1,1]:
-                                                state = multiplyableDict({"L":Lv, "|Lambda|": abs(Lambda), 
-                                                                          "sigma": sigma, "S":Sv, "|Sigma|":abs(Sigma),
-                                                                          "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
-                                                                          "|Omega|":abs(Omega), "phi":phi , 
-                                                                          "sigma_vxz": sigmav, 'sigma_v2xz':sigmav*(-1)**(Iv-iota)})
+                                                state = multiplyableDict({"L":L_, "|Lambda|": abs(Lambda), 
+                                                                          "sigma": sigma, "S":S_, "|Sigma|":abs(Sigma),
+                                                                          "I":I_, "|Iota|":abs(Iota), "i_a":i_a, "i_b":i_b,
+                                                                          "|Omega|":abs(Omega), "Phi":Phi , 
+                                                                          "sigma_vxz": sigmav, 'sigma_v2xz':sigmav*(-1)**(I_-Iota)})
                                                 if Jv is not None:
                                                     state.update({'J':Jv})
                                                 if Fv is not None:
                                                     state.update({'F':Fv})
                                                 if state not in boBasisRef:
                                                     boBasisRef.append(state)
-                                        elif Omega != 0 and phi == 0:
+                                        elif Omega != 0 and Phi == 0:
                                                 for sigmav2 in [-1,1]:
-                                                    state = multiplyableDict({"L":Lv, "|Lambda|": abs(Lambda), 
-                                                                              "sigma": sigma, "S":Sv, "|Sigma|":abs(Sigma), 
-                                                                              "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
-                                                                              "|Omega|":abs(Omega), "phi":phi , 
-                                                                              "sigma_vxz": (-1)**(Lv-Lambda+Sv-Sigma), 'sigma_v2xz':sigmav2})
+                                                    state = multiplyableDict({"L":L_, "|Lambda|": abs(Lambda), 
+                                                                              "sigma": sigma, "S":S_, "|Sigma|":abs(Sigma), 
+                                                                              "I":I_, "|Iota|":abs(Iota), "i_a":i_a, "i_b":i_b,
+                                                                              "|Omega|":abs(Omega), "Phi":Phi , 
+                                                                              "sigma_vxz": (-1)**(L_-Lambda+S_-Sigma), 'sigma_v2xz':sigmav2})
                                                     if Jv is not None:
                                                         state.update({'J':Jv})
                                                     if Fv is not None:
@@ -105,12 +113,12 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=N
                                                     if state not in boBasisRef:
                                                         boBasisRef.append(state)
                                         else:
-                                            state = multiplyableDict({"L":Lv, "|Lambda|": abs(Lambda), 
-                                                                      "sigma": sigma, "S":Sv, "|Sigma|":abs(Sigma), 
-                                                                      "i":Iv, "|iota|":abs(iota), "i1":i1, "i2":i2,
-                                                                      "|Omega|":abs(Omega), "phi": phi, 
-                                                                      "sigma_vxz": (-1)**(Lv-Lambda+Sv-Sigma), 
-                                                                      "sigma_v2xz":(-1)**(Lv-Lambda+Sv-Sigma+Iv-iota) })
+                                            state = multiplyableDict({"L":L_, "|Lambda|": abs(Lambda), 
+                                                                      "sigma": sigma, "S":S_, "|Sigma|":abs(Sigma), 
+                                                                      "I":I_, "|Iota|":abs(Iota), "i_a":i_a, "i_b":i_b,
+                                                                      "|Omega|":abs(Omega), "Phi": Phi, 
+                                                                      "sigma_vxz": (-1)**(L_-Lambda+S_-Sigma), 
+                                                                      "sigma_v2xz":(-1)**(L_-Lambda+S_-Sigma+I_-Iota) })
                                             if Jv is not None:
                                                 state.update({'J':Jv})
                                             if Fv is not None:
@@ -125,10 +133,14 @@ def createCaseABasis_Sym(Lvals, Svals, Ivals, sigmavals=["g","u"], Jv=None, Fv=N
 # ######################################
 
 def convertH_toCaseABasis(states, H_, offset=-1/2):
+    # this seems misnamed...
     num = len(states)
     coupleM = np.array([[0.0 for _ in states] for _ in states])
     for num, _ in enumerate(states):
         coupleM[num,num] = offset
+    # This seems like a very round-about way of doing this. 
+    # states on the input is the conversino of a case-a state to the given H_'s base. So it's
+    # |fs><a|
     for num1, state1 in enumerate(states):
         #misc.reportProgress(num1, len(states))
         for num2, state2 in enumerate(states):
@@ -137,7 +149,8 @@ def convertH_toCaseABasis(states, H_, offset=-1/2):
     return coupleM    
 
 def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
-    if state['|Omega|'] == 0 and state['|iota|'] == 0:
+    # this is one of my weird transformations that I want to revise to be a normal matrix. 
+    if state['|Omega|'] == 0 and state['|Iota|'] == 0:
         return caseASymFsToMostlySym(state, mostlySymBasis, indexes=indexes)
     else:
         stateMostlySym1, stateMostlySym2 = {},{}        
@@ -147,37 +160,38 @@ def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
             elif key[0] != "|":
                 stateMostlySym1[key] = state[key]
                 stateMostlySym2[key] = state[key]
-            elif key == "phi":
-                stateMostlySym1["phi"] = state["phi"]
-            elif key == "|iota|":
-                if (state['|iota|'] + state['|Omega|'] == state["phi"]) or (state['|iota|'] - state['|Omega|'] == state["phi"]):
-                    iotaSign = 1
+            elif key == "Phi":
+                stateMostlySym1["Phi"] = state["Phi"]
+            elif key == "|Iota|":
+                if (state['|Iota|'] + state['|Omega|'] == state["Phi"]) or (state['|Iota|'] - state['|Omega|'] == state["Phi"]):
+                    IotaSign = 1
                 else:
-                    iotaSign = -1
-                stateMostlySym1["iota"] = iotaSign*state["|iota|"]
+                    IotaSign = -1
+                stateMostlySym1["Iota"] = IotaSign*state["|Iota|"]
         
-        stateMostlySym1['Omega'] = stateMostlySym1['phi'] - stateMostlySym1['iota']
+        stateMostlySym1['Omega'] = stateMostlySym1['Phi'] - stateMostlySym1['Iota']
         stateMostlySym1['Lambda'] = (1 if stateMostlySym1['Omega']>0 else -1)*state['|Lambda|']
         stateMostlySym1['Sigma'] = stateMostlySym1['Omega'] - stateMostlySym1['Lambda']
-        for key in ['phi','iota','Omega','Lambda','Sigma']:
+        for key in ['Phi','Iota','Omega','Lambda','Sigma']:
             stateMostlySym2[key] = -stateMostlySym1[key]        
                 
         # Im confused about why this seems to need to involve sigma_vxz to work.
-        sign = '+' if state['sigma_v2xz']*state['sigma_vxz']*(-1)**(state['i']-state['|iota|'])==1 else '-'
-        #sign = '+' if state['sigma_v2xz']*(-1)**(state['i']-state['|iota|'])==1 else '-'
+        sign = '+' if state['sigma_v2xz']*state['sigma_vxz']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
+        #sign = '+' if state['sigma_v2xz']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
         #sign = '+' if state['sigma_v2xz'] == 1 else '-'
         if indexes:
             return [mostlySymBasis.index(stateMostlySym1), mostlySymBasis.index(stateMostlySym2)], [1,1 if sign == "+" else -1]
         return '|'+''.join([str(val) for key, val in stateMostlySym1.items()])+'>'+sign+'|'+''.join([str(val) for key, val in stateMostlySym2.items()])+'>'
     
 def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
+    # this is one of my weird transformations that I want to revise to be a normal matrix. 
     if state['|Lambda|'] == 0 and state['|Sigma|'] == 0:
         stateMostlySym = {}
         for key in state.keys():
             if key == "sigma_vxz" or key == "sigma_v2xz":
                 pass
-            elif key == '|iota|':
-                stateMostlySym['iota'] = state['phi']
+            elif key == '|Iota|':
+                stateMostlySym['Iota'] = state['Phi']
             elif key[0] != "|":
                 stateMostlySym[key] = state[key]
             else:
@@ -203,58 +217,77 @@ def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
             elif key == "|Omega|":
                 stateMostlySym1["Omega"] = state["|Omega|"]
                 stateMostlySym2["Omega"] = -state["|Omega|"]
-            elif key == "phi":
-                stateMostlySym1["phi"] = state["phi"]
-                stateMostlySym2["phi"] = -state["phi"]
-            elif key == "|iota|":
-                stateMostlySym1["iota"] = state["phi"]-state["|Omega|"]
-                stateMostlySym2["iota"] = state["phi"]-(-state["|Omega|"])
+            elif key == "Phi":
+                stateMostlySym1["Phi"] = state["Phi"]
+                stateMostlySym2["Phi"] = -state["Phi"]
+            elif key == "|Iota|":
+                stateMostlySym1["Iota"] = state["Phi"]-state["|Omega|"]
+                stateMostlySym2["Iota"] = state["Phi"]-(-state["|Omega|"])
         sign = '+' if state['sigma_vxz'] == 1 else '-'
         if indexes:
             return [mostlySymBasis.index(stateMostlySym1), mostlySymBasis.index(stateMostlySym2)], [1,1 if sign == "+" else -1]
         return '|'+''.join([str(val) for key, val in stateMostlySym1.items()])+'>'+sign+'|'+''.join([str(val) for key, val in stateMostlySym2.items()])+'>'
 
 def create_lsiToJi_Op(lsiBasis, jiBasis):
-    # expects single atom bases
+    """
+    creates | j m_j i m_i > < l m_l s m_s i m_i | transformation matrix. 
+    The matrix elements are just clebsch Gordon coefficeints, but you have
+    to be careful to track quantum numbers carefully. 
+    expects lsiBasis and jiBasis to be single atom bases.
+    """
     assert(len(lsiBasis)==len(jiBasis))
     op = np.zeros((len(lsiBasis),len(jiBasis)))
     for lsnum, lsiState in enumerate(lsiBasis):
         for jnum, jiState in enumerate(jiBasis):
             # there should be some repeats because of the i values in each basis
-            L, mL, S, mS, I_lsi, mI_lsi = [lsiState[key] for key in ['L','mL','S','mS', 'I', 'mI']]
-            J, mJ, JL, JS, I_ji, mI_ji = [jiState[key] for key in ['J','mJ', 'L', 'S', 'I', 'mI']]
+            l, m_l, s, m_s, i_lsi, m_i_lsi = [lsiState[key] for key in ['l_x','m_l_x','s_x','m_s_x', 'i_x', 'm_i_x']]
+            j, m_j, jl, js, i_ji, m_i_ji = [jiState[key] for key in ['j_x', 'm_j_x', 'l_x', 's_x', 'i_x', 'm_i_x']]
+            # a good example of where you really need to keep track of all the quantum numbers. 
             # needing to handle this case makes me feel like the actual clebsh gordon coef should be written as
-            # <L,mL,S,mS|J,mJ,L2,S2> or so instead of <L,mL,S,mS|J,mJ> as it usually is written. 
-            if JL != L or JS != S or I_lsi != I_ji or mI_lsi != mI_ji:
+            # <L,mL,S,mS|J,mJ,l_b,s_b> or so instead of <L,mL,S,mS|J,mJ> as it usually is written. 
+            if jl != l or js != s or i_lsi != i_ji or m_i_lsi != m_i_ji:
                 op[jnum,lsnum] = 0
             else:
-                op[jnum,lsnum] += float(CG(L, mL, S, mS, J, mJ).doit())
+                op[jnum,lsnum] += float(CG(l, m_l, s, m_s, j, m_j).doit())
     return op
 
 def create_jiToF_Op(jiBasis, fBasis):
-    # expects single atom bases
+    """
+    creates the matrix |f m_f j i><j m_j i m_i| transformation matrix for the given bases.
+    expects single atom bases
+    """
+    
     assert(len(jiBasis)==len(fBasis))
-    op = np.zeros((len(jiBasis),len(fBasis)))
+    jiToF = np.zeros((len(jiBasis),len(fBasis)))
     for jnum, jiState in enumerate(jiBasis):
         for fnum, fState in enumerate(fBasis):
-            J, mJ, L, S, I, mI = [jiState[key] for key in ['J','mJ', 'L', 'S', 'I', 'mI']]
-            F, mF, Jf, If, Lf, Sf = [fState[key] for key in ['F','mF','J','I', 'L', 'S']]
+            j, m_j, l, s, i, m_i = [jiState[key] for key in ['j_x','m_j_x', 'l_x', 's_x', 'i_x', 'm_i_x']]
+            f, m_f, fj, fi, fl, fs = [fState[key] for key in ['f_x','m_f_x','j_x','i_x', 'l_x', 's_x']]
             # needing to handle this case makes me feel like the actual clebsh gordon coef 
-            # should technically be written as <L,mL,S,mS|J,mJ,L2,S2> or so instead 
+            # should technically be written as <L,mL,S,mS|J,mJ,l_b,s_b> or so instead 
             # of <L,mL,S,mS|J,mJ> as it usually is written. 
-            if Jf != J or If != I or Lf != L or Sf != S:
-                op[fnum, jnum] = 0
+            if fj != j or fi != i or fl != l or fs != s:
+                jiToF[fnum, jnum] = 0
             else:
-                res = float(CG(J, mJ, I, mI, F, mF).doit())
-                op[fnum, jnum] += float(CG(J, mJ, I, mI, F, mF).doit())
-    return op
+                res = float(CG(j, m_j, i, m_i, f, m_f).doit())
+                jiToF[fnum, jnum] += float(CG(j, m_j, i, m_i, f, m_f).doit())
+    return jiToF
 
 def caseAToAtomic( oalNums, spinNums, nuclearNums, sigma, lsiBasis, basisChange=None ):
+    """
+    (L, Lambda, la, lb) = oalNums
+    (S, Sigma, sa, sb) = spinNums
+    (I, Iota, ia, ib) = nuclearNums
+    first converts to lsi basis then to whatever basis determined by basischange.
+    
+    this is the place to focus next. 
+    """
+    
     state = 0
     otherBasisStates, lsiBasisStates, indvCont = [], [], []
     (L, Lambda, la, lb) = oalNums
     (S, Sigma, sa, sb) = spinNums
-    (I, iota, ia, ib) = nuclearNums
+    (I, Iota, ia, ib) = nuclearNums
     p_ = (-1)**(S+sigma)
     for mla in np.arange(-la,la+1,1):
         mlb = Lambda-mla
@@ -265,18 +298,18 @@ def caseAToAtomic( oalNums, spinNums, nuclearNums, sigma, lsiBasis, basisChange=
             if abs(msb) > sb:
                 continue
             for mia in np.arange(-ia, ia+1, 1):
-                mib = iota-mia
+                mib = Iota-mia
                 if abs(mib) > ib:
                     continue
                 # for mib in np.arange(-ib,ib+1,1):
-                # CG notation is <j1,mj1,j2,mj2|j3,mj3>
+                # CG notation is <j_a,mj_a,j_b,mj_b|j3,mj3>
                 oalCoef = float(CG(la,mla,lb,mlb,L,Lambda).doit())
                 spinCoef = float(CG(sa,msa,sb,msb,S,Sigma).doit())
-                nuclearCoef = float(CG(ia,mia,ib,mib,I,iota).doit())
-                aState1 = getColumnState(lsiBasis, {'L':la,'mL':mla,'S':sa,'mS':msa, 'I':ia,'mI':mia})
-                bState1 = getColumnState(lsiBasis, {'L':lb,'mL':mlb,'S':sb,'mS':msb, 'I':ib,'mI':mib})
-                aState2 = getColumnState(lsiBasis, {'L':lb,'mL':mlb,'S':sa,'mS':msa, 'I':ia,'mI':mia})
-                bState2 = getColumnState(lsiBasis, {'L':la,'mL':mla,'S':sb,'mS':msb, 'I':ib,'mI':mib})
+                nuclearCoef = float(CG(ia,mia,ib,mib,I,Iota).doit())
+                aState1 = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
+                bState1 = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
+                aState2 = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
+                bState2 = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
                 if oalCoef != 0 and nuclearCoef != 0 and spinCoef != 0:
                     lsiBasisStates.append([aState1, bState1, aState2, bState2])
                 if basisChange is not None:
@@ -292,72 +325,73 @@ def caseAToAtomic( oalNums, spinNums, nuclearNums, sigma, lsiBasis, basisChange=
     if np.linalg.norm(state) == 0:
         raise ValueError("State has zero norm!")
     state /= np.linalg.norm(state)
-    return state #, np.array(indvCont), np.array(lsiBasisStates), np.array(otherBasisStates)
+    return state
 
 # #####################################
 # Original Hamiltonian Creation
 # #####################################
 
-def create_HfsH(basis, E_5P12_F1F2_splitting, E_HFS_5S12_F1F2_splitting, F3E, F2E, F1E, F0E):
-    # basis: expects a two-particle basis, so each element of the basis should 
-    # have F_1, mF_1, J_1, I_1, and F_2, mF_2, J_2, I_2 values.
+def create_HfsH(hfs_basis, E_5P12_F1F2_splitting, E_HFS_5S12_F1F2_splitting, F3E, F2E, F1E, F0E):
+    # hfs_basis: expects a two-particle basis, so each element of the basis should 
+    # have Fz, mF_a, J_a, i_a, and F_b, mF_b, J_b, i_b values.
     # A_5P12_F1F2: The D1 line excited state hyperfine splitting (energy between 5P_{1/2},F=1 and F=2)
     # F3E, F2E, F1E, F0E: the energies of the 5P_{3/2} F=3,2,1,0 manifolds. In this case, unlike in 
     # the fine-structure case, because there are four energy levels perturbations to the energy levels 
     # can't be captured in a single "A" constant, so instead I use the actual energy values 
     # (F3E, F2E, F1E, F0E)
-    op = np.zeros((len(basis),len(basis)))
-    #f1,mf1,j1,i1,f2,mf2,j2,i2 = [0 for _ in range(8)]
-    names = ['F','mF','J','I']
-    for s1num, state1 in enumerate(basis):
-        # unpack the actual values of the quantum numbers:
+    H_HFS = np.zeros((len(hfs_basis),len(hfs_basis)))
+    #f_a,mf_a,j_a,i_a,f_b,mf_b,j_b,i_b = [0 for _ in range(8)]
+    name_pref = ['f','m_f','j','i']
+    for s1num, state1 in enumerate(hfs_basis):
+        # unpack the values of the quantum numbers from the state:
         qNums = [0 for _ in range(8)]
-        for num, name in enumerate(names):
-            qNums[num] = state1[name+"_1"]
-            qNums[num+4] = state1[name+"_2"]
-        #for num, name in enumerate(names):
-        #    qNums[num+4] = state1[name+"_2"]
-        f1,mf1,j1,i1,f2,mf2,j2,i2 = qNums
-        # calculate the energies of the individual atoms and add.
-        A1 = E_5P12_F1F2_splitting if state1["L_1"] == 1 else E_HFS_5S12_F1F2_splitting
-        E1 = A1/2 * (f1*(f1+1)-j1*(j1+1)-i1*(i1+1)) if state1["J_1"] != 3/2 else (F3E if f1==3 else (F2E if f1==2 else (F1E if f1==1 else F0E)))
-        A2 = E_5P12_F1F2_splitting if state1["L_2"] == 1 else E_HFS_5S12_F1F2_splitting
-        E2 = A2/2 * (f2*(f2+1)-j2*(j2+1)-i2*(i2+1)) if state1["J_2"] != 3/2 else (F3E if f2==3 else (F2E if f2==2 else (F1E if f2==1 else F0E)))
+        for num, name_p in enumerate(name_pref):
+            qNums[num] = state1[name_p+"_a"]
+            qNums[num+4] = state1[name_p+"_b"]
+        f_a,mf_a,j_a,i_a,f_b,mf_b,j_b,i_b = qNums
+        # calculate the energies of the individual atoms and add. A_a_HFS would be the hyperfine splitting constant (oftentimes denoted A_HFS) 
+        # for particles around nucleus A
+        A_a_HFS = E_5P12_F1F2_splitting if state1["l_a"] == 1 else E_HFS_5S12_F1F2_splitting
+        E1 = A_a_HFS/2 * (f_a*(f_a+1)-j_a*(j_a+1)-i_a*(i_a+1)) if state1["j_a"] != 3/2 else (F3E if f_a==3 else (F2E if f_a==2 else (F1E if f_a==1 else F0E)))
+        A_b_HFS = E_5P12_F1F2_splitting if state1["l_b"] == 1 else E_HFS_5S12_F1F2_splitting
+        E2 = A_b_HFS/2 * (f_b*(f_b+1)-j_b*(j_b+1)-i_b*(i_b+1)) if state1["j_b"] != 3/2 else (F3E if f_b==3 else (F2E if f_b==2 else (F1E if f_b==1 else F0E)))
         # the matrix is diagonal in the given basis.
-        op[s1num,s1num] = E1 + E2
-    return op
+        H_HFS[s1num,s1num] = E1 + E2
+    return H_HFS
 
-def create_fsH(basis):
+def create_fsH(fs_basis):
     # expects a two-particle basis, so each element of the basis should 
-    # have J_1, mJ_1, L_1, S_1, and J_2, mJ_2, L_2, S_2 values.
-    op = np.zeros((len(basis),len(basis)))
-    J1,mJ1,L1,S1,J2,mJ2,L2,S2 = [0 for _ in range(8)]
-    names = ['J','mJ','L','S']
-    for s1num, state1 in enumerate(basis):
+    # have j_a, mj_a, l_a, s_a, and J_b, mJ_b, l_b, s_b values.
+    H_FS = np.zeros((len(fs_basis), len(fs_basis)))
+    #j_a,mj_a,l_a,s_a,j_b,mj_b,l_b,s_b = [0 for _ in range(8)]
+    names = ['j','m_j','l','s']
+    # it's diagonal in this fs_basis, so only one loop.
+    for s1num, state1 in enumerate(fs_basis):
         qNums = [0 for _ in range(8)]
         for num, name in enumerate(names):
-            qNums[num] = state1[name+"_1"]
+            qNums[num] = state1[name+"_a"]
         for num, name in enumerate(names):
-            qNums[num+4] = state1[name+"_2"]
-        J1,mJ1,L1,S1,J2,mJ2,L2,S2 = qNums
-        # the matrix element is A/2 (L1 . S1 + L2 . S2), A=1
-        val = 0.5 * (  J1*(J1+1)-L1*(L1+1)-S1*(S1+1) 
-                     + J2*(J2+1)-L2*(L2+1)-S2*(S2+1))
-        op[s1num,s1num] = val
-    return op
+            qNums[num+4] = state1[name+"_b"]
+        j_a,m_j_a,l_a,s_a,j_b,m_j_b,l_b,s_b = qNums
+        # the matrix element is A/2 (l_a . s_a + l_b . s_b), A=1
+        val = 0.5 * (  j_a*(j_a+1)-l_a*(l_a+1)-s_a*(s_a+1) 
+                     + j_b*(j_b+1)-l_b*(l_b+1)-s_b*(s_b+1))
+        H_FS[s1num,s1num] = val
+    return H_FS
 
-def getBoH(C3, Rv, *states):
-    # returns the Born Oppenheimer Hamiltonian    
+def get_H_BO(C3, Rv, bo_basis):
+    # returns the Born Oppenheimer Hamiltonian
     # expects states to be a list of lists where the low level list has the values of L, Lambda, S,Sigma, and sigma.
-    matrix = np.array([[0.0 for _ in states] for _ in states])
+    #H_BO = np.array([[0.0 for _ in bo_basis] for _ in bo_basis])
+    H_BO = np.zeros((len(bo_basis),len(bo_basis)))
+    lambdaKey = "|Lambda|" if "|Lambda|" in bo_basis[0] else "Lambda"
     # the matrix is diagonal.
-    lambdaKey = "|Lambda|" if "|Lambda|" in states[0] else "Lambda"
-    for num, state in enumerate(states):
+    for num, state in enumerate(bo_basis):
         sigma = g if state["sigma"]=="g" else u
         pv = (-1)**(state["S"]+sigma)
-        Lv = state["L"]
-        matrix[num,num] = -pv*(3*state[lambdaKey]**2-Lv*(Lv+1))/Rv**3 * C3
-    return matrix
+        L_ = state["L"]
+        H_BO[num,num] = -pv*(3*state[lambdaKey]**2-L_*(L_+1))/Rv**3 * C3
+    return H_BO
 
 # ##############
 # Miscellaneous
@@ -370,11 +404,13 @@ class multiplyableDict(dict):
         assert(type(other) == type(self))
         newDict = multiplyableDict()
         for key, value in self.items():
-            newDict.update({key+"_1": value})
+            key_ag = key[:-2] # remove the _x from the single particle agnostic labels
+            newDict.update({key_ag+"_a": value})
         for key, value in other.items():
-            newDict.update({key+"_2": value})
+            key_ag = key[:-2]
+            newDict.update({key_ag+"_b": value})
         return newDict
-    
+
 def getColumnState(basis, quantumNums):
     assert(len(basis[0])==len(quantumNums))
     colState = [[0] for _ in range(len(basis))]
@@ -391,6 +427,7 @@ def getColumnState(basis, quantumNums):
 def stateLabel(state):
     label = ""
     for key, val in state.items():
-        if key != 'L' and key != 'phi' and key != 'i1' and key != 'i2':
+        if key != 'L' and key != 'Phi' and key != 'i_a' and key != 'i_b':
             label += key + ":" + str(val) + ", "
     return label
+
