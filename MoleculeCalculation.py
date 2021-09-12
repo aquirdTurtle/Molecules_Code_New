@@ -44,11 +44,11 @@ def createAtomicBases(lvals, svals, ivals):
     return (lsiBasisRef, jiBasisRef, fBasisRef, 
             np.kron(lsiBasisRef,lsiBasisRef), np.kron(jiBasisRef,jiBasisRef), np.kron(fBasisRef,fBasisRef))
 
-def createCaseABasis_MostlySym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None, Fv=None):
+def createCaseABasis_MostlySym(Lvals, Svals, ivals, I_BOvals=["g","u"], Jv=None, Fv=None):
     # Jv and Fv are only used for rotational calculations.
-    # does not include the planar reflection symmetry sigma_v2. 
+    # does not include the planar reflection symmetry kappa_HFS. 
     boBasisRef = []
-    for sigma in sigmavals:
+    for I_BO in I_BOvals:
         for L_ in Lvals:
             for Lambda in np.arange(-L_,L_+1,1):
                 for S_ in Svals:
@@ -58,7 +58,7 @@ def createCaseABasis_MostlySym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None
                                 for I_ in np.arange(abs(i_b-i_a), i_b+i_a+1,1):
                                     for Iota in np.arange(-I_,I_+1,1):
                                         state = multiplyableDict({"L":L_, "Lambda": Lambda, 
-                                                                  "sigma": sigma, "S":S_, "Sigma":Sigma,
+                                                                  "I_BO": I_BO, "S":S_, "Sigma":Sigma,
                                                                   "I":I_, "Iota":Iota, "i_a":i_a, "i_b":i_b,
                                                                   "Omega":Sigma+Lambda, "Phi": Sigma+Lambda+Iota })
                                         if Jv is not None:
@@ -73,9 +73,9 @@ def createCaseABasis_MostlySym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None
 
 
 
-def createCaseABasis_Sym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None, Fv=None):
+def createCaseABasis_Sym(Lvals, Svals, ivals, I_BOvals=["g","u"], Jv=None, Fv=None):
     boBasisRef = []
-    for sigma in sigmavals:
+    for I_BO in I_BOvals:
         for L_ in Lvals:
             for Lambda in np.arange(-L_,L_+1,1):
                 for S_ in Svals:
@@ -87,12 +87,12 @@ def createCaseABasis_Sym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None, Fv=N
                                         Omega = Sigma+Lambda
                                         Phi  = Sigma+Lambda+Iota
                                         if Lambda != 0 and Omega==0:
-                                            for sigmav in [-1,1]:
+                                            for kappa_BO in [-1,1]:
                                                 state = multiplyableDict({"L":L_, "|Lambda|": abs(Lambda), 
-                                                                          "sigma": sigma, "S":S_, "|Sigma|":abs(Sigma),
+                                                                          "I_BO": I_BO, "S":S_, "|Sigma|":abs(Sigma),
                                                                           "I":I_, "|Iota|":abs(Iota), "i_a":i_a, "i_b":i_b,
                                                                           "|Omega|":abs(Omega), "Phi":Phi , 
-                                                                          "sigma_vxz": sigmav, 'sigma_v2xz':sigmav*(-1)**(I_-Iota)})
+                                                                          "kappa_BO": kappa_BO, 'kappa_HFS':kappa_BO*(-1)**(I_-Iota)})
                                                 if Jv is not None:
                                                     state.update({'J':Jv})
                                                 if Fv is not None:
@@ -100,25 +100,25 @@ def createCaseABasis_Sym(Lvals, Svals, ivals, sigmavals=["g","u"], Jv=None, Fv=N
                                                 if state not in boBasisRef:
                                                     boBasisRef.append(state)
                                         elif Omega != 0 and Phi == 0:
-                                                for sigmav2 in [-1,1]:
-                                                    state = multiplyableDict({"L":L_, "|Lambda|": abs(Lambda), 
-                                                                              "sigma": sigma, "S":S_, "|Sigma|":abs(Sigma), 
-                                                                              "I":I_, "|Iota|":abs(Iota), "i_a":i_a, "i_b":i_b,
-                                                                              "|Omega|":abs(Omega), "Phi":Phi , 
-                                                                              "sigma_vxz": (-1)**(L_-Lambda+S_-Sigma), 'sigma_v2xz':sigmav2})
-                                                    if Jv is not None:
-                                                        state.update({'J':Jv})
-                                                    if Fv is not None:
-                                                        state.update({'F':Fv})
-                                                    if state not in boBasisRef:
-                                                        boBasisRef.append(state)
+                                            for kappa_HFS in [-1,1]:
+                                                state = multiplyableDict({"L":L_, "|Lambda|": abs(Lambda), 
+                                                                          "I_BO": I_BO, "S":S_, "|Sigma|":abs(Sigma), 
+                                                                          "I":I_, "|Iota|":abs(Iota), "i_a":i_a, "i_b":i_b,
+                                                                          "|Omega|":abs(Omega), "Phi":Phi , 
+                                                                          "kappa_BO": (-1)**(L_-Lambda+S_-Sigma), 'kappa_HFS':kappa_HFS})
+                                                if Jv is not None:
+                                                    state.update({'J':Jv})
+                                                if Fv is not None:
+                                                    state.update({'F':Fv})
+                                                if state not in boBasisRef:
+                                                    boBasisRef.append(state)
                                         else:
                                             state = multiplyableDict({"L":L_, "|Lambda|": abs(Lambda), 
-                                                                      "sigma": sigma, "S":S_, "|Sigma|":abs(Sigma), 
+                                                                      "I_BO": I_BO, "S":S_, "|Sigma|":abs(Sigma), 
                                                                       "I":I_, "|Iota|":abs(Iota), "i_a":i_a, "i_b":i_b,
                                                                       "|Omega|":abs(Omega), "Phi": Phi, 
-                                                                      "sigma_vxz": (-1)**(L_-Lambda+S_-Sigma), 
-                                                                      "sigma_v2xz":(-1)**(L_-Lambda+S_-Sigma+I_-Iota) })
+                                                                      "kappa_BO": (-1)**(L_-Lambda+S_-Sigma), 
+                                                                      "kappa_HFS":(-1)**(L_-Lambda+S_-Sigma+I_-Iota) })
                                             if Jv is not None:
                                                 state.update({'J':Jv})
                                             if Fv is not None:
@@ -149,13 +149,13 @@ def convertH_toCaseABasis(states, H_, offset=-1/2):
     return coupleM    
 
 def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
-    # this is one of my weird transformations that I want to revise to be a normal matrix. 
+    # this is one of my weird transformations that I want to revise to be a normal matrix.         
     if state['|Omega|'] == 0 and state['|Iota|'] == 0:
         return caseASymFsToMostlySym(state, mostlySymBasis, indexes=indexes)
     else:
         stateMostlySym1, stateMostlySym2 = {},{}        
         for key in state.keys():
-            if key == "sigma_vxz" or key == "sigma_v2xz" or key == "|Lambda|" or key == "|Sigma|" or key == "|Omega|":
+            if key in ["kappa_BO", "kappa_FS", "kappa_HFS", "|Lambda|", "|Sigma|", "|Omega|"]:
                 pass
             elif key[0] != "|":
                 stateMostlySym1[key] = state[key]
@@ -175,10 +175,10 @@ def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
         for key in ['Phi','Iota','Omega','Lambda','Sigma']:
             stateMostlySym2[key] = -stateMostlySym1[key]        
                 
-        # Im confused about why this seems to need to involve sigma_vxz to work.
-        sign = '+' if state['sigma_v2xz']*state['sigma_vxz']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
-        #sign = '+' if state['sigma_v2xz']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
-        #sign = '+' if state['sigma_v2xz'] == 1 else '-'
+        # Im confused about why this seems to need to involve kappa_BO to work.
+        sign = '+' if state['kappa_HFS']*state['kappa_BO']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
+        #sign = '+' if state['kappa_HFS']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
+        #sign = '+' if state['kappa_HFS'] == 1 else '-'
         if indexes:
             return [mostlySymBasis.index(stateMostlySym1), mostlySymBasis.index(stateMostlySym2)], [1,1 if sign == "+" else -1]
         return '|'+''.join([str(val) for key, val in stateMostlySym1.items()])+'>'+sign+'|'+''.join([str(val) for key, val in stateMostlySym2.items()])+'>'
@@ -188,7 +188,7 @@ def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
     if state['|Lambda|'] == 0 and state['|Sigma|'] == 0:
         stateMostlySym = {}
         for key in state.keys():
-            if key == "sigma_vxz" or key == "sigma_v2xz":
+            if key in ["kappa_BO", "kappa_FS", "kappa_HFS"]:
                 pass
             elif key == '|Iota|':
                 stateMostlySym['Iota'] = state['Phi']
@@ -203,7 +203,7 @@ def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
         # else two state contribute
         stateMostlySym2, stateMostlySym1 = {}, {}
         for key in state.keys():
-            if key == "sigma_vxz" or key == "sigma_v2xz":
+            if key in ["kappa_BO", "kappa_FS", "kappa_HFS"]:
                 pass
             elif key[0] != "|":
                 stateMostlySym1[key] = state[key]
@@ -223,7 +223,7 @@ def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
             elif key == "|Iota|":
                 stateMostlySym1["Iota"] = state["Phi"]-state["|Omega|"]
                 stateMostlySym2["Iota"] = state["Phi"]-(-state["|Omega|"])
-        sign = '+' if state['sigma_vxz'] == 1 else '-'
+        sign = '+' if state['kappa_BO'] == 1 else '-'
         if indexes:
             return [mostlySymBasis.index(stateMostlySym1), mostlySymBasis.index(stateMostlySym2)], [1,1 if sign == "+" else -1]
         return '|'+''.join([str(val) for key, val in stateMostlySym1.items()])+'>'+sign+'|'+''.join([str(val) for key, val in stateMostlySym2.items()])+'>'
@@ -273,7 +273,7 @@ def create_jiToF_Op(jiBasis, fBasis):
                 jiToF[fnum, jnum] += float(CG(j, m_j, i, m_i, f, m_f).doit())
     return jiToF
 
-def caseAToAtomic( oalNums, spinNums, nuclearNums, sigma, lsiBasis, basisChange=None ):
+def caseAToAtomic( oalNums, spinNums, nuclearNums, I_BO, lsiBasis, basisChange=None ):
     """
     (L, Lambda, la, lb) = oalNums
     (S, Sigma, sa, sb) = spinNums
@@ -288,7 +288,7 @@ def caseAToAtomic( oalNums, spinNums, nuclearNums, sigma, lsiBasis, basisChange=
     (L, Lambda, la, lb) = oalNums
     (S, Sigma, sa, sb) = spinNums
     (I, Iota, ia, ib) = nuclearNums
-    p_ = (-1)**(S+sigma)
+    p_ = (-1)**(S+I_BO)
     for mla in np.arange(-la,la+1,1):
         mlb = Lambda-mla
         if abs(mlb) > lb:
@@ -381,14 +381,14 @@ def create_fsH(fs_basis):
 
 def get_H_BO(C3, Rv, bo_basis):
     # returns the Born Oppenheimer Hamiltonian
-    # expects states to be a list of lists where the low level list has the values of L, Lambda, S,Sigma, and sigma.
+    # expects states to be a list of lists where the low level list has the values of L, Lambda, S,Sigma, and I_BO.
     #H_BO = np.array([[0.0 for _ in bo_basis] for _ in bo_basis])
     H_BO = np.zeros((len(bo_basis),len(bo_basis)))
     lambdaKey = "|Lambda|" if "|Lambda|" in bo_basis[0] else "Lambda"
     # the matrix is diagonal.
     for num, state in enumerate(bo_basis):
-        sigma = g if state["sigma"]=="g" else u
-        pv = (-1)**(state["S"]+sigma)
+        I_BO = g if state["I_BO"]=="g" else u
+        pv = (-1)**(state["S"]+I_BO)
         L_ = state["L"]
         H_BO[num,num] = -pv*(3*state[lambdaKey]**2-L_*(L_+1))/Rv**3 * C3
     return H_BO
