@@ -251,6 +251,53 @@ def create_lsiToJi_Op(lsiBasis, jiBasis):
                 op[jnum,lsnum] += float(CG(l, m_l, s, m_s, j, m_j).doit())
     return op
 
+def genCaseAToLsiTransform(caseABasis, lsiBasis,caseAMostlySymHfs, basisChange=None):
+    caseAToLsi = np.zeros((len(caseABasis),len(lsiBasis)**2))
+    for staten, state in enumerate(caseABasis):        
+        misc.reportProgress(staten, len(caseABasis))
+        indexes, signs = caseASymHfsToMostlySym(state, caseAMostlySymHfs, indexes=True)
+        symFsState = 0
+        # construct the correct superposition which will preserve the symmetry of the given base. 
+        # This should be only either 1 or 2 iterations in this loop.
+        #print(indexes, signs)
+        if state['|Omega|'] != 0:
+            indexes = [indexes[0]]
+            signs = [signs[0]]
+        for index, sign in zip(indexes,signs):
+            caseAState = caseAMostlySymHfs[index] # alias
+            I_BO = g if caseAState["I_BO"] == "g" else u
+            #nuclearNums = [caseAState['I'], caseAState['Iota'],caseAState['i_a'],caseAState['i_b']]
+            oalNums = (caseAState["L"], caseAState["Lambda"], 1, 0) # oal = "orbital angular momentum"
+            spinNums = (caseAState["S"], caseAState["Sigma"], 1/2, 1/2)
+            symFsState += sign * caseAToAtomic( oalNums, spinNums, (0,0,0,0), I_BO, lsiBasis, basisChange=basisChange )
+        caseAToLsi[staten, :] = symFsState[:,0] / np.sqrt(len(indexes));
+    return caseAToLsi
+
+def create_lsi2ToJi2_Op(lsiBasis, jiBasis):
+    """
+    creates | j_a m_j_a i_a m_i_a >| j_b m_j_b i_b m_i_b > < l_a m_l_a s_a m_s_a i_a m_i_a |< l_b m_l_b s_b m_s_b i_b m_i_b | 
+    transformation matrix. The matrix elements are just clebsch Gordon coefficeints, but you have
+    to be careful to track quantum numbers carefully. 
+    expects lsiBasis and jiBasis to be *two* atom bases.
+    """
+    assert(len(lsiBasis)==len(jiBasis))
+    op = np.zeros((len(lsiBasis),len(jiBasis)))
+    for lsnum, lsiState in enumerate(lsiBasis):
+        for jnum, jiState in enumerate(jiBasis):
+            op[jnum,lsnum] = 1
+            for suffix in ['_a','_b']:
+                # there should be some repeats because of the i values in each basis
+                l, m_l, s, m_s, i_lsi, m_i_lsi = [lsiState[key+suffix] for key in ['l','m_l','s','m_s', 'i', 'm_i']]
+                j, m_j, jl, js, i_ji, m_i_ji = [jiState[key+suffix] for key in ['j', 'm_j', 'l', 's', 'i', 'm_i']]
+                # a good example of where you really need to keep track of all the quantum numbers. 
+                # needing to handle this case makes me feel like the actual clebsh gordon coef should be written as
+                # <L,mL,S,mS|J,mJ,l_b,s_b> or so instead of <L,mL,S,mS|J,mJ> as it usually is written. 
+                if jl != l or js != s or i_lsi != i_ji or m_i_lsi != m_i_ji:
+                    op[jnum,lsnum] *= 0
+                else:
+                    op[jnum,lsnum] *= float(CG(l, m_l, s, m_s, j, m_j).doit())
+    return op
+
 def create_jiToF_Op(jiBasis, fBasis):
     """
     creates the matrix |f m_f j i><j m_j i m_i| transformation matrix for the given bases.
