@@ -2,6 +2,8 @@ import numpy as np
 from sympy.physics.quantum.cg import CG
 import math
 import scipy.linalg
+import copy
+
 import MarksConstants as mc
 import Miscellaneous as misc
 
@@ -11,7 +13,67 @@ u = 1
 # ##################
 # Creating Bases
 # ##################
-    
+boStates = [
+    {"L":1, "|Lambda|":0, "S":1, "I_BO":'g', "kappa_BO":1},
+    {"L":1, "|Lambda|":0, "S":1, "I_BO":'u', "kappa_BO":1},
+    {"L":1, "|Lambda|":0, "S":0, "I_BO":'g', "kappa_BO":1},
+    {"L":1, "|Lambda|":0, "S":0, "I_BO":'u', "kappa_BO":1},
+    {"L":1, "|Lambda|":1, "S":1, "I_BO":'g' },
+    {"L":1, "|Lambda|":1, "S":1, "I_BO":'u' },
+    {"L":1, "|Lambda|":1, "S":0, "I_BO":'g' },
+    {"L":1, "|Lambda|":1, "S":0, "I_BO":'u' },
+]
+
+def addFsRelevantStates(boBasis):
+    # Adds the states that are split by the Fs symmetry to the bare BO Basis.
+    expandedBasis = []
+    for state in boBasis:
+        for Sigma in np.arange(-state['S'], state['S']+1,1):
+            Omega = Sigma+state['|Lambda|']
+            if state['|Lambda|'] != 0 and Omega==0: 
+                # Pi state and Omega == 0 so Sigma = 1 and two ways of symmetrizing.
+                for kappa_FS in [-1,1]:
+                    newState = copy.copy(state)
+                    newState.update({"|Sigma|":abs(Sigma), 'kappa_FS':kappa_FS, '|Omega|':abs(Omega)})
+                    expandedBasis.append(newState)
+            elif Sigma>=0:
+                kappa_FS=(-1)**(1-state['|Lambda|']+state['S']-Sigma)
+                newState = copy.copy(state)
+                newState.update({"|Sigma|":abs(Sigma), 'kappa_FS':kappa_FS, '|Omega|':abs(Omega)})
+                if newState not in expandedBasis:
+                    expandedBasis.append(newState)
+    return expandedBasis
+
+
+def addHfsRelevantStates(boFsBasis):
+    # Adds the states that are split by the Fs symmetry to the bare BO Basis.
+    expandedBasis = []
+    i_a = i_b = 3/2
+    for state in boFsBasis:
+        for I_ in np.arange(0,4,1):
+            for Iota in np.arange(-I_, I_+1,1):
+                #for Omega in [-state['|Omega|'], state['|Omega|']]:
+                for Omega in [-state['|Omega|'], state['|Omega|']]:
+                    Phi = Iota+Omega
+                    mostUpdates = {"|Phi|":abs(Phi),'I':I_, '|Iota|':abs(Iota), 'i_a':i_a, 'i_b':i_b}
+                    if Omega != 0 and Phi == 0:
+                        # there are two ways of combining Omega and Iota to get Phi=0 then 
+                        # and we will similarly get the symmetric and anti-symmetric superpositions.
+                        for kappa_HFS in [-1,1]:
+                            newState = copy.copy(state)
+                            newState.update(mostUpdates)
+                            newState.update({'kappa_HFS': kappa_HFS})
+                            if newState not in expandedBasis:
+                                expandedBasis.append(newState)
+                    else:
+                        newState = copy.copy(state)
+                        newState.update(mostUpdates)
+                        # probably want to think a moment on why using kappa_BO here
+                        newState.update({ 'kappa_HFS':state['kappa_FS']*(-1)**(I_-Iota) })
+                        if newState not in expandedBasis:
+                            expandedBasis.append(newState)
+    return expandedBasis
+
 def createAtomicBases(lvals, svals, ivals):
     """
     Important notational note here. This function creates a *single atom* basis. 
@@ -146,7 +208,7 @@ def convertH_toCaseABasis(states, H_, offset=-1/2):
         for num2, state2 in enumerate(states):
             matElem = state2.T@H_@state1
             coupleM[num1,num2] += matElem
-    return coupleM    
+    return coupleM
 
 def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
     # this is one of my weird transformations that I want to revise to be a normal matrix.         
@@ -160,10 +222,10 @@ def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
             elif key[0] != "|":
                 stateMostlySym1[key] = state[key]
                 stateMostlySym2[key] = state[key]
-            elif key == "Phi":
-                stateMostlySym1["Phi"] = state["Phi"]
+            elif key == "|Phi|":
+                stateMostlySym1["Phi"] = state["|Phi|"]
             elif key == "|Iota|":
-                if (state['|Iota|'] + state['|Omega|'] == state["Phi"]) or (state['|Iota|'] - state['|Omega|'] == state["Phi"]):
+                if (state['|Iota|'] + state['|Omega|'] == state["|Phi|"]) or (state['|Iota|'] - state['|Omega|'] == state["|Phi|"]):
                     IotaSign = 1
                 else:
                     IotaSign = -1
@@ -176,7 +238,7 @@ def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
             stateMostlySym2[key] = -stateMostlySym1[key]        
                 
         # Im confused about why this seems to need to involve kappa_BO to work.
-        sign = '+' if state['kappa_HFS']*state['kappa_BO']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
+        sign = '+' if state['kappa_HFS']*state['kappa_FS']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
         #sign = '+' if state['kappa_HFS']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
         #sign = '+' if state['kappa_HFS'] == 1 else '-'
         if indexes:
@@ -185,13 +247,14 @@ def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
     
 def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
     # this is one of my weird transformations that I want to revise to be a normal matrix. 
+    # I think this is the last one for the fine structure... gah of course the most tricky too.
     if state['|Lambda|'] == 0 and state['|Sigma|'] == 0:
         stateMostlySym = {}
         for key in state.keys():
             if key in ["kappa_BO", "kappa_FS", "kappa_HFS"]:
                 pass
             elif key == '|Iota|':
-                stateMostlySym['Iota'] = state['Phi']
+                stateMostlySym['Iota'] = state['|Phi|']
             elif key[0] != "|":
                 stateMostlySym[key] = state[key]
             else:
@@ -217,13 +280,13 @@ def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
             elif key == "|Omega|":
                 stateMostlySym1["Omega"] = state["|Omega|"]
                 stateMostlySym2["Omega"] = -state["|Omega|"]
-            elif key == "Phi":
-                stateMostlySym1["Phi"] = state["Phi"]
-                stateMostlySym2["Phi"] = -state["Phi"]
+            elif key == "|Phi|":
+                stateMostlySym1["Phi"] = state["|Phi|"]
+                stateMostlySym2["Phi"] = -state["|Phi|"]
             elif key == "|Iota|":
-                stateMostlySym1["Iota"] = state["Phi"]-state["|Omega|"]
-                stateMostlySym2["Iota"] = state["Phi"]-(-state["|Omega|"])
-        sign = '+' if state['kappa_BO'] == 1 else '-'
+                stateMostlySym1["Iota"] = state["|Phi|"]-state["|Omega|"]
+                stateMostlySym2["Iota"] = state["|Phi|"]-(-state["|Omega|"])
+        sign = '+' if state['kappa_FS'] == 1 else '-'
         if indexes:
             return [mostlySymBasis.index(stateMostlySym1), mostlySymBasis.index(stateMostlySym2)], [1,1 if sign == "+" else -1]
         return '|'+''.join([str(val) for key, val in stateMostlySym1.items()])+'>'+sign+'|'+''.join([str(val) for key, val in stateMostlySym2.items()])+'>'
@@ -250,28 +313,6 @@ def create_lsiToJi_Op(lsiBasis, jiBasis):
             else:
                 op[jnum,lsnum] += float(CG(l, m_l, s, m_s, j, m_j).doit())
     return op
-
-def genCaseAToLsiTransform(caseABasis, lsiBasis,caseAMostlySymHfs, basisChange=None):
-    caseAToLsi = np.zeros((len(caseABasis),len(lsiBasis)**2))
-    for staten, state in enumerate(caseABasis):        
-        misc.reportProgress(staten, len(caseABasis))
-        indexes, signs = caseASymHfsToMostlySym(state, caseAMostlySymHfs, indexes=True)
-        symFsState = 0
-        # construct the correct superposition which will preserve the symmetry of the given base. 
-        # This should be only either 1 or 2 iterations in this loop.
-        #print(indexes, signs)
-        if state['|Omega|'] != 0:
-            indexes = [indexes[0]]
-            signs = [signs[0]]
-        for index, sign in zip(indexes,signs):
-            caseAState = caseAMostlySymHfs[index] # alias
-            I_BO = g if caseAState["I_BO"] == "g" else u
-            #nuclearNums = [caseAState['I'], caseAState['Iota'],caseAState['i_a'],caseAState['i_b']]
-            oalNums = (caseAState["L"], caseAState["Lambda"], 1, 0) # oal = "orbital angular momentum"
-            spinNums = (caseAState["S"], caseAState["Sigma"], 1/2, 1/2)
-            symFsState += sign * caseAToAtomic( oalNums, spinNums, (0,0,0,0), I_BO, lsiBasis, basisChange=basisChange )
-        caseAToLsi[staten, :] = symFsState[:,0] / np.sqrt(len(indexes));
-    return caseAToLsi
 
 def create_lsi2ToJi2_Op(lsiBasis, jiBasis):
     """
@@ -320,18 +361,154 @@ def create_jiToF_Op(jiBasis, fBasis):
                 jiToF[fnum, jnum] += float(CG(j, m_j, i, m_i, f, m_f).doit())
     return jiToF
 
+def genCaseAToLsiTransform(caseABasis, lsiBasis,caseAMostlySymHfs, basisChange=None):
+    caseAToLsi = np.zeros((len(caseABasis),len(lsiBasis)**2))
+    for staten, state in enumerate(caseABasis):        
+        misc.reportProgress(staten, len(caseABasis))
+        indexes, signs = caseASymHfsToMostlySym(state, caseAMostlySymHfs, indexes=True)
+        symFsState = 0
+        # construct the correct superposition which will preserve the symmetry of the given base. 
+        # This should be only either 1 or 2 iterations in this loop.
+        print(indexes, signs)
+        if state['|Omega|'] != 0:
+            indexes = [indexes[0]]
+            signs = [signs[0]]
+        for index, sign in zip(indexes,signs):
+            caseAState = caseAMostlySymHfs[index] # alias
+            I_BO = g if caseAState["I_BO"] == "g" else u
+            #nuclearNums = [caseAState['I'], caseAState['Iota'],caseAState['i_a'],caseAState['i_b']]
+            oalNums = (caseAState["L"], caseAState["Lambda"], 1, 0) # oal = "orbital angular momentum"
+            spinNums = (caseAState["S"], caseAState["Sigma"], 1/2, 1/2)
+            symFsState += sign * caseAToAtomic( oalNums, spinNums, (0,0,0,0), I_BO, lsiBasis, basisChange=basisChange )
+        caseAToLsi[staten, :] = symFsState[:,0] / np.sqrt(len(indexes));
+    return caseAToLsi
+
+def caseAMostlySymToLsi_2Transf( caseABasis, lsiBasis2, verbose=False):
+    """
+    A hopefully more sensible way to calculate this. Should be able to make a matrix and then 
+    """
+    transformation = np.zeros((len(caseABasis), len(lsiBasis2)))
+    for stateA_n, stateA in enumerate(caseABasis):
+        L_, Lambda = [stateA[kv] for kv in ['L','Lambda']]
+        l_a_sa, l_b_sa = (1,0)
+        S_, Sigma = [stateA[kv] for kv in ['S','Sigma']]
+        s_a_sa, s_b_sa = (1/2,1/2)
+        I_, Iota, i_a_sa, i_b_sa = [stateA[kv] for kv in ['I','Iota','i_a','i_b']]
+        I_BO = 1 if stateA['I_BO']=='g' else -1
+        
+        # (L, Lambda, la, lb) = oalNums
+        # (S, Sigma, sa, sb) = spinNums
+        # (I, Iota, ia, ib) = nuclearNums
+        
+        p_ = (-1)**(S_)*I_BO
+        if verbose:
+            print('pval',p_)
+            
+        for stateLsi_n, stateLsi in enumerate(lsiBasis2):
+            (l_a, lambda_a, l_b, lambda_b) = [stateLsi[kv] for kv in ['l_a', 'm_l_a', 'l_b', 'm_l_b']]
+            (s_a, sigma_a, s_b, sigma_b)   = [stateLsi[kv] for kv in ['s_a', 'm_s_a', 's_b', 'm_s_b']]
+            (i_a, iota_a, i_b, iota_b)     = [stateLsi[kv] for kv in ['i_a', 'm_i_a', 'i_b', 'm_i_b']]
+
+            if l_a == l_b:
+                continue
+
+            d1 = 1 if s_a_sa == s_a else 0
+            d2 = 1 if s_b_sa == s_b else 0
+            d3 = 1 if i_a_sa == i_a else 0
+            d4 = 1 if i_b_sa == i_b else 0
+            
+            deltas = d1*d2*d3*d4
+            
+            oalCoef = float(CG(l_a,lambda_a,l_b,lambda_b,L_,Lambda).doit())
+            spinCoef = float(CG(s_a,sigma_a,s_b,sigma_b,S_,Sigma).doit())
+            nuclearCoef = float(CG(i_a,iota_a,i_b,iota_b,I_,Iota).doit())
+            
+            transformation[stateA_n, stateLsi_n] = p_**(l_a)*deltas*oalCoef*spinCoef*nuclearCoef
+
+        if np.linalg.norm(transformation[stateA_n,:]) == 0:
+            raise ValueError("State has zero norm!")
+        transformation[stateA_n,:] /= np.linalg.norm(transformation[stateA_n,:])
+    return transformation
+
+def genCaseAToLsiTransform2(caseABasis, lsiBasis, caseAMostlySymHfs, basisChange=None):
+    
+    caseAToLsi = np.zeros((len(caseABasis),len(lsiBasis)))
+    transf = caseAMostlySymToLsi_2Transf( caseAMostlySymHfs, lsiBasis, verbose=False)
+    
+    for staten, state in enumerate(caseABasis):        
+        misc.reportProgress(staten, len(caseABasis))
+        indexes, signs = caseASymHfsToMostlySym(state, caseAMostlySymHfs, indexes=True)
+        symFsState = 0
+        # construct the correct superposition which will preserve the symmetry of the given base. 
+        # This should be only either 1 or 2 iterations in this loop.
+        print(indexes, signs)
+        if state['|Omega|'] != 0:
+            indexes = [indexes[0]]
+            signs = [signs[0]]
+        for index, sign in zip(indexes,signs):
+            caseAState = caseAMostlySymHfs[index]
+            caseAc = getColumnState(caseAMostlySymHfs, caseAState)
+            print(transf.shape, np.array(caseAc).shape)
+            symFsState += sign * transf.T @ caseAc
+        caseAToLsi[staten, :] = symFsState[:,0] / np.sqrt(len(indexes));
+    return caseAToLsi
+
+
+def caseAToLsi_2Transf( caseABasis, lsiBasis2 ):
+    """
+    A hopefully more sensible way to calculate this. Should be able to make a matrix and then 
+    """
+    (L, Lambda, la, lb) = oalNums
+    (S, Sigma, sa, sb) = spinNums
+    (I, Iota, ia, ib) = nuclearNums
+    p_ = (-1)**(S+I_BO)
+    transformation = np.zeros((len(caseABasis, lsiBasis2)))
+    for stateA_n, stateA in enumerate(caseABasis):
+        for stateLsi_n, stateLsi in enumerate(lsiBasis2):
+            (l_a, lambda_a, l_b, lambda_b) = [stateLsi[kv] for kv in ['l_a', 'm_l_a', 'l_b', 'm_l_b']]
+            (s_a, sigma_a, s_b, sigma_b)   = [stateLsi[kv] for kv in ['s_a', 'm_s_a', 's_b', 'm_s_b']]
+            (i_a, iota_a, i_b, iota_b)     = [stateLsi[kv] for kv in ['i_a', 'm_i_a', 'i_b', 'm_i_b']]
+            
+            oalCoef = float(CG(l_a,lambda_a,l_b,lambda_b,L,Lambda).doit())
+            spinCoef = float(CG(s_a,sigma_a,s_b,sigma_b,S,Sigma).doit())
+            nuclearCoef = float(CG(i_a,iota_a,i_b,iota_b,I,Iota).doit())
+            
+            transformation[stateA_n, stateLsi_n] = p_**(l_b)*oalCoef*spinCoef*nuclearCoef
+            
+            """
+            # CG notation is <j_a,mj_a,j_b,mj_b|j3,mj3>
+            oalCoef = float(CG(la,mla,lb,mlb,L,Lambda).doit())
+            spinCoef = float(CG(sa,msa,sb,msb,S,Sigma).doit())
+            nuclearCoef = float(CG(ia,mia,ib,mib,I,Iota).doit())
+            # I need to remember how this is organized...
+            state1_a = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
+            bState1 = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
+            state2_a = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
+            bState2 = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
+            if basisChange is not None:
+                state1_a = basisChange @ state1_a
+                bState1 = basisChange @ bState1
+                state2_a = basisChange @ state2_a
+                bState2 = basisChange @ bState2
+            newpart = nuclearCoef*oalCoef*spinCoef * (np.kron(state1_a,state1_b) + p_ * np.kron(state2_a,state2_b))
+            state += newpart
+            """
+    return transformation
+            
+
 def caseAToAtomic( oalNums, spinNums, nuclearNums, I_BO, lsiBasis, basisChange=None ):
     """
+    This takes a single case A *state* and transforms it to the LSI basis an returns it. a rather round-about way to do this.
+    
     (L, Lambda, la, lb) = oalNums
     (S, Sigma, sa, sb) = spinNums
     (I, Iota, ia, ib) = nuclearNums
     first converts to lsi basis then to whatever basis determined by basischange.
     
-    this is the place to focus next. 
+    this is the place to focus next.
     """
     
     state = 0
-    otherBasisStates, lsiBasisStates, indvCont = [], [], []
     (L, Lambda, la, lb) = oalNums
     (S, Sigma, sa, sb) = spinNums
     (I, Iota, ia, ib) = nuclearNums
@@ -353,22 +530,18 @@ def caseAToAtomic( oalNums, spinNums, nuclearNums, I_BO, lsiBasis, basisChange=N
                 oalCoef = float(CG(la,mla,lb,mlb,L,Lambda).doit())
                 spinCoef = float(CG(sa,msa,sb,msb,S,Sigma).doit())
                 nuclearCoef = float(CG(ia,mia,ib,mib,I,Iota).doit())
-                aState1 = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
-                bState1 = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
-                aState2 = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
-                bState2 = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
-                if oalCoef != 0 and nuclearCoef != 0 and spinCoef != 0:
-                    lsiBasisStates.append([aState1, bState1, aState2, bState2])
+                # I need to remember how this is organized...
+                state1_a = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
+                state1_b = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
+                state2_a = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
+                state2_b = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
                 if basisChange is not None:
-                    aState1 = basisChange@aState1
-                    bState1 = basisChange@bState1
-                    aState2 = basisChange@aState2
-                    bState2 = basisChange@bState2
-                newpart = nuclearCoef*oalCoef*spinCoef * (np.kron(aState1,bState1) + p_ * np.kron(aState2,bState2))
+                    state1_a = basisChange @ state1_a
+                    state1_b = basisChange @ state1_b
+                    state2_a = basisChange @ state2_a
+                    state2_b = basisChange @ state2_b
+                newpart = nuclearCoef*oalCoef*spinCoef * (np.kron(state1_a,state1_b) + p_ * np.kron(state2_a,state2_b))
                 state += newpart
-                if oalCoef != 0 and nuclearCoef != 0 and spinCoef != 0:
-                    indvCont.append(newpart)
-                    otherBasisStates.append([aState1, bState1, aState2, bState2])
     if np.linalg.norm(state) == 0:
         raise ValueError("State has zero norm!")
     state /= np.linalg.norm(state)
@@ -378,7 +551,7 @@ def caseAToAtomic( oalNums, spinNums, nuclearNums, I_BO, lsiBasis, basisChange=N
 # Original Hamiltonian Creation
 # #####################################
 
-def create_HfsH(hfs_basis, E_5P12_F1F2_splitting, E_HFS_5S12_F1F2_splitting, F3E, F2E, F1E, F0E):
+def create_H_HFS(hfs_basis, E_5P12_F1F2_splitting, E_HFS_5S12_F1F2_splitting, F3E, F2E, F1E, F0E):
     # hfs_basis: expects a two-particle basis, so each element of the basis should 
     # have Fz, mF_a, J_a, i_a, and F_b, mF_b, J_b, i_b values.
     # A_5P12_F1F2: The D1 line excited state hyperfine splitting (energy between 5P_{1/2},F=1 and F=2)
@@ -406,7 +579,7 @@ def create_HfsH(hfs_basis, E_5P12_F1F2_splitting, E_HFS_5S12_F1F2_splitting, F3E
         H_HFS[s1num,s1num] = E1 + E2
     return H_HFS
 
-def create_fsH(fs_basis):
+def create_H_FS(fs_basis):
     # expects a two-particle basis, so each element of the basis should 
     # have j_a, mj_a, l_a, s_a, and J_b, mJ_b, l_b, s_b values.
     H_FS = np.zeros((len(fs_basis), len(fs_basis)))
@@ -459,6 +632,10 @@ class multiplyableDict(dict):
         return newDict
 
 def getColumnState(basis, quantumNums):
+    # Mostly I use bases in their dictionary form where each element has all the 
+    # relevant quantum numbers readily accessibly to identify the state. But eventually
+    # I need to calculate matrices which are indexed by numbers, not a list of quantum
+    # numbers. This function helps facilitate the relationship between these.
     assert(len(basis[0])==len(quantumNums))
     colState = [[0] for _ in range(len(basis))]
     for num, state in enumerate(basis):
@@ -477,4 +654,3 @@ def stateLabel(state):
         if key != 'L' and key != 'Phi' and key != 'i_a' and key != 'i_b':
             label += key + ":" + str(val) + ", "
     return label
-
