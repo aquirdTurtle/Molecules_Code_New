@@ -387,42 +387,38 @@ def caseAMostlySymToLsi_2Transf( caseABasis, lsiBasis2, verbose=False):
     """
     A hopefully more sensible way to calculate this. Should be able to make a matrix and then 
     """
+    print('starting caseAMostlySymToLsi_2Transf')
     transformation = np.zeros((len(caseABasis), len(lsiBasis2)))
     for stateA_n, stateA in enumerate(caseABasis):
+        print('.',end='')
         L_, Lambda = [stateA[kv] for kv in ['L','Lambda']]
         l_a_sa, l_b_sa = (1,0)
         S_, Sigma = [stateA[kv] for kv in ['S','Sigma']]
         s_a_sa, s_b_sa = (1/2,1/2)
         I_, Iota, i_a_sa, i_b_sa = [stateA[kv] for kv in ['I','Iota','i_a','i_b']]
         I_BO = 1 if stateA['I_BO']=='g' else -1
-        
-        # (L, Lambda, la, lb) = oalNums
-        # (S, Sigma, sa, sb) = spinNums
-        # (I, Iota, ia, ib) = nuclearNums
-        
         p_ = (-1)**(S_)*I_BO
         if verbose:
             print('pval',p_)
-            
         for stateLsi_n, stateLsi in enumerate(lsiBasis2):
             (l_a, lambda_a, l_b, lambda_b) = [stateLsi[kv] for kv in ['l_a', 'm_l_a', 'l_b', 'm_l_b']]
             (s_a, sigma_a, s_b, sigma_b)   = [stateLsi[kv] for kv in ['s_a', 'm_s_a', 's_b', 'm_s_b']]
             (i_a, iota_a, i_b, iota_b)     = [stateLsi[kv] for kv in ['i_a', 'm_i_a', 'i_b', 'm_i_b']]
-
-            if l_a == l_b:
+            if (S_ not in np.arange(abs(s_a-s_b), s_a+s_b+1,1) 
+                or I_ not in np.arange(abs(i_a-i_b), i_a+i_b+1,1)
+                or Lambda != lambda_a+lambda_b
+                or Sigma != sigma_a + sigma_b
+                or Iota != iota_a + iota_b
+                or l_a == l_b):
                 continue
-
             d1 = 1 if s_a_sa == s_a else 0
             d2 = 1 if s_b_sa == s_b else 0
             d3 = 1 if i_a_sa == i_a else 0
             d4 = 1 if i_b_sa == i_b else 0
-            
             deltas = d1*d2*d3*d4
-            
             oalCoef = float(CG(l_a,lambda_a,l_b,lambda_b,L_,Lambda).doit())
             spinCoef = float(CG(s_a,sigma_a,s_b,sigma_b,S_,Sigma).doit())
-            nuclearCoef = float(CG(i_a,iota_a,i_b,iota_b,I_,Iota).doit())
-            
+            nuclearCoef = float(CG(i_a,iota_a,i_b,iota_b,I_,Iota).doit())            
             transformation[stateA_n, stateLsi_n] = p_**(l_a)*deltas*oalCoef*spinCoef*nuclearCoef
 
         if np.linalg.norm(transformation[stateA_n,:]) == 0:
@@ -431,7 +427,7 @@ def caseAMostlySymToLsi_2Transf( caseABasis, lsiBasis2, verbose=False):
     return transformation
 
 def genCaseAToLsiTransform2(caseABasis, lsiBasis, caseAMostlySymHfs, basisChange=None):
-    
+    print('starting genCaseAToLsiTransform2')
     caseAToLsi = np.zeros((len(caseABasis),len(lsiBasis)))
     transf = caseAMostlySymToLsi_2Transf( caseAMostlySymHfs, lsiBasis, verbose=False)
     
