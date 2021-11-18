@@ -44,13 +44,13 @@ def addFsRelevantStates(boBasis):
                     expandedBasis.append(newState)
     return expandedBasis
 
-
-def addHfsRelevantStates(boFsBasis):
+def addHfsRelevantStates(boFsBasis, i_val=3/2):
     # Adds the states that are split by the Fs symmetry to the bare BO Basis.
     expandedBasis = []
-    i_a = i_b = 3/2
+    i_a = i_b = i_val
+    IVals = np.arange(abs(i_a-i_b),i_a+i_b+1,1)
     for state in boFsBasis:
-        for I_ in np.arange(0,4,1):
+        for I_ in IVals:
             for Iota in np.arange(-I_, I_+1,1):
                 #for Omega in [-state['|Omega|'], state['|Omega|']]:
                 for Omega in [-state['|Omega|'], state['|Omega|']]:
@@ -287,6 +287,7 @@ def caseASymFsToMostlySym(state, mostlySymBasis, indexes=False):
                 stateMostlySym1["Iota"] = state["|Phi|"]-state["|Omega|"]
                 stateMostlySym2["Iota"] = state["|Phi|"]-(-state["|Omega|"])
         sign = '+' if state['kappa_FS'] == 1 else '-'
+        #sign = '+' if state['kappa_BO'] == 1 else '-'
         if indexes:
             return [mostlySymBasis.index(stateMostlySym1), mostlySymBasis.index(stateMostlySym2)], [1,1 if sign == "+" else -1]
         return '|'+''.join([str(val) for key, val in stateMostlySym1.items()])+'>'+sign+'|'+''.join([str(val) for key, val in stateMostlySym2.items()])+'>'
@@ -390,7 +391,6 @@ def caseAMostlySymToLsi_2Transf( caseABasis, lsiBasis2, verbose=False):
     print('starting caseAMostlySymToLsi_2Transf')
     transformation = np.zeros((len(caseABasis), len(lsiBasis2)))
     for stateA_n, stateA in enumerate(caseABasis):
-        print('.',end='')
         L_, Lambda = [stateA[kv] for kv in ['L','Lambda']]
         l_a_sa, l_b_sa = (1,0)
         S_, Sigma = [stateA[kv] for kv in ['S','Sigma']]
@@ -410,6 +410,7 @@ def caseAMostlySymToLsi_2Transf( caseABasis, lsiBasis2, verbose=False):
                 or Sigma != sigma_a + sigma_b
                 or Iota != iota_a + iota_b
                 or l_a == l_b):
+                #print('continuing...')
                 continue
             d1 = 1 if s_a_sa == s_a else 0
             d2 = 1 if s_b_sa == s_b else 0
@@ -422,7 +423,7 @@ def caseAMostlySymToLsi_2Transf( caseABasis, lsiBasis2, verbose=False):
             transformation[stateA_n, stateLsi_n] = p_**(l_a)*deltas*oalCoef*spinCoef*nuclearCoef
 
         if np.linalg.norm(transformation[stateA_n,:]) == 0:
-            raise ValueError("State has zero norm!")
+            raise ValueError("State has zero norm!",stateA,stateA_n)
         transformation[stateA_n,:] /= np.linalg.norm(transformation[stateA_n,:])
     return transformation
 
