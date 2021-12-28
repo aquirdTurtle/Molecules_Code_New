@@ -1,0 +1,556 @@
+%\documentclass{article}
+\documentclass[prl, longbibliography, aps, 10pt]{revtex4-2}
+\usepackage{graphicx}
+\usepackage{makecell}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\begin{document}
+
+\title{Mark's Notes on Molecular Potential Calculations (Rotation)}
+\author{Mark O. Brown}
+
+\begin{abstract}
+A discussion of the calculation of molecular potentials incorporating Dipole-Dipole interactions, fine structure, molecule rotation, and eventually fine structure. These calculations mostly come from old photoassociation experiments and are surprisingly inaccessible to the lowly atomic physicist. The goal of this document is therefore a very pedagogical description of the calculations, aimed at those who have no experience with molecular physics and only a passing familiarity with hydrogen-like atoms as seen in an introductory quantum mechanics class. 
+\end{abstract}
+
+\maketitle
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Rotation}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In general adding rotation to the problem complicates matters greatly. The Hamiltonian here is
+
+\begin{equation}
+H_R = \frac{\hat{N}^2}{2\mu R^2}
+\end{equation}
+
+$H_R$ doesn't commute with either $H_{BO}$ or $H_{FS}$, so at this point we have three hamiltonians in our main total Hamiltonian. Depending on $R$ and the rotational state, any of these hamiltonians can dominate, and so depending on their relative states different state bases should be used to describe the states. The different cases of which terms are strongest are called Hund's cases in the literature, and there are five of them labeled (a)-(e). $H_{BO}$ is diagonal in case (a) and case (b) states, $H_{FS}$ is diagonal in the case (c) states, and $H_R$ is diagonal in cases (d) and case (e). Therefore, since we have been working in the BO basis for all this work, the challenge of adding this to the hamiltonian to the calculation amounts to finding the transformation matrices which transform states from case (e), where $H_R$ is diagonal and easy to evaluate, to case (a). States in case (e) are described by quantum numbers $J, j, \ell, j_a, $ and $j_b$, therefore the matrix elements we need to calculate are $\langle J, j, \ell, j_a, j_b|J, L\Lambda\sigma S \Sigma\rangle$.
+
+Depending on how strong the rotational couplings are compared to the Born-Oppenheimer interactions and the , some old quantum numbers are no longer good quantum numbers. The BO potentials are derived in case (a/b) (it's agnostic as to which), while the fine-structure potentials use the case (c) basis. In the case that rotation is very strong, one goes to case (d) or case (e). In basis E the good quantum numbers are $|J M_J c \Lambda S \Sigma \mathcal{P} \rangle $ where $\mathcal{P}$ describes the total parity of the state, and where $M_J$ is the projection of J on the relevtant rotational axis, \emph{not} the internuclear axis. We need to rotate this basis into the basis using projections along the internuclear axis. In general we do this with the \emph{Wigner D-Matrices} represented by the matrix elements $D^J_{M_J,\Omega}=\langle J,M_J|\mathcal{R}\{\alpha,\beta\gamma\}|J, \Omega\rangle$ where $\mathcal{R}\{\alpha,\beta\gamma\}$ are standard 3D rotation matrices with euler angles $\alpha, \beta,$ and $\gamma$. The original reference for this derivation is \cite{singer_theory_1983}, although Paul's notes explain the matter more clearly TBH. 
+As usual, only the absolute value of the projection is expected to matter, so we will have to include the appropriatly superposition of the two $\Omega$ states. 
+Therefore, we expect to be able to write the original basis in the form $|J M_J; L \Lambda L_a L_b; S \Sigma  S_1 S_2; \mathcal{P} \rangle=N(D^{J*}_{M_J\Omega}|L \Lambda L_1 L_2; S \Sigma S_1 S_2\rangle+pD^{J*}_{M_J-\Omega}|L -\Lambda L_1 L_2; S -\Sigma S_1 S_2\rangle)$. One can think about the symmetrization and normalization carefully and come to the conclusion that this must be
+\begin{equation}
+\begin{split}
+|J M_J; L \Lambda L_a L_b; S \Sigma  S_1 S_2; \mathcal{P} \rangle=\\
+\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}\sqrt{\frac{2J+1}{8\pi^3}}\bigg[&D^{J*}_{M_J\Omega}\{\alpha \beta \gamma\}|L \Lambda L_a L_b; S \Sigma S_a S_b\rangle\\
+&+\mathcal{P}(-1)^{l_a+l_b+J-S}D^{J*}_{M_J-\Omega}\{\alpha \beta \gamma\}|L, -\Lambda L_a L_b; S, -\Sigma S_a S_b\rangle\bigg]
+\end{split}
+\end{equation}
+
+We need to represent the $|j\Omega j_a j_b\rangle$ state in terms of the single particle states:
+\begin{equation}
+|L \Lambda L_1 L_2; S \Sigma S_1 S_2\rangle = \sum_{j, j_a, j_b} |j\Omega j_a j_b\rangle\langle j\Omega j_a j_b | L_a L_b \Lambda_a \Lambda_b; S\Sigma S_a S_b\rangle
+\end{equation}
+
+So we need to calculate these matrix elements between the states which are just going to end up giving us a ton of clebsch gordon coefficients: 
+\begin{align}
+&\langle j\Omega j_a j_b | L_a L_b \Lambda_a \Lambda_b; S\Sigma S_a S_b\rangle \\
+= &\Bigg(\sum_{\Omega_a \Omega_b} C_{j_a j_b \Omega_a \Omega_b}^{j \Omega} \langle j_a j_b \Omega_a \Omega_b |\Bigg)|L_a L_b \Lambda_a \Lambda_b\rangle \Bigg(\sum_{\Sigma_a\Sigma_b} C_{S_a S_b \Sigma_a \Sigma_b}^{S \Sigma}| S_a S_b \Sigma_a \Sigma_b\rangle\Bigg)\\
+=&\Bigg(\sum_{\Omega_a \Omega_b}C_{j_a j_b \Omega_a \Omega_b}^{j \Omega}\Big(\sum_{\Lambda_a\Sigma_a} C_{L_a S_a \Lambda_a \Sigma_a}^{j_a \Omega_a}\langle L_a S_a \Lambda_a \Sigma_a |\Big)\Big(\sum_{\Sigma_b\Lambda_b} C_{L_b S_b \Lambda_b \Sigma_b}^{j_b \Omega_b}\langle L_b S_b \Lambda_b \Sigma_b |\Big)\Bigg)\\
+&\times|L_a L_b \Lambda_a \Lambda_b\rangle\Bigg(\sum_{\Sigma_a\Sigma_b} C_{S_a S_b \Sigma_a \Sigma_b}^{S \Sigma} | S_a S_b \Sigma_a \Sigma_b\rangle\Bigg)\\
+=&\sum_{\Sigma_a \Sigma_b \Omega_a \Omega_b} 
+C_{j_a j_b \Omega_a \Omega_b}^{j \Omega} 
+C_{L_a S_a \Lambda_a \Sigma_a}^{j_a \Omega_a}
+C_{L_b S_b \Lambda_b \Sigma_b}^{j_b \Omega_b} 
+C_{S_a S_b \Sigma_a \Sigma_b}^{S \Sigma}\\
+=&\sum_{L} \sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{L_a L_b \Lambda_a \Lambda_b}^{L \Lambda}
+C_{L S \Lambda \Sigma}^{j \Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}\\
+=&\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{L S \Lambda \Sigma}^{j \Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\end{align}
+
+(should redo to match the 9j definition) Here we have $\breve{x}=2x+1$ where $x$ is any angular momentum quantum number. We can see here that we have to be careful with the signs of the projections, as these will carry through to the clebsch gordon coefficient.  The term in curly brackets is known as the Wigner 9-j symbol - it evaluates to a constant. Where in the last step I used the fact that we know for atoms of interest for us there is only one value of L, specifically $L=L_b=1$ and $L_a=0$ to remove the superfluous clebsch gordon coefficient and sum over $L$. We need to rotate the single particle states. They can be rotated through the following relation:
+\begin{equation}
+|j\Omega j_a j_b\rangle = \sum_m |j m j_a j_b\rangle D^j_{m \Omega}\{\alpha\beta\gamma\}
+\end{equation}
+
+Therefore, equation 15 becomes...
+\begin{equation}
+\begin{split}
+&|J M_J; L \Lambda L_a L_b; S \Sigma  S_1 S_2; \mathcal{P} \rangle
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\sqrt{\frac{2J+1}{8\pi^3}}
+\sum_{j, j_a, j_b} 
+\bigg[D^{J*}_{M_J\Omega}
+|j\Omega j_a j_b\rangle\langle j\Omega j_a j_b | L_a L_b \Lambda_a \Lambda_b; S\Sigma S_a S_b\rangle
+\\
+&+\mathcal{P}(-1)^{l_a+l_b+J-S}D^{J*}_{M_J-\Omega}
+|j,-\Omega j_a j_b\rangle\langle j,-\Omega j_a j_b | L_a L_b \Lambda_a \Lambda_b; S,-\Sigma S_a S_b\rangle
+\bigg]
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\sqrt{\frac{2J+1}{8\pi^3}}
+\sum_{j, m_j, j_a, j_b} \bigg[
+C_{L S \Lambda \Sigma}^{j \Omega}
+D^{J*}_{M_J\Omega}D^j_{m \Omega}
+|j m j_a j_b\rangle
+\\
+&+
+C_{L,-\Lambda S,-\Sigma}^{j,-\Omega}
+\mathcal{P}(-1)^{l_a+l_b+J-S}D^{J*}_{M_J-\Omega}
+D^j_{m,-\Omega}|j m j_a j_b\rangle \bigg]
+\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\sqrt{\frac{2J+1}{8\pi^3}}
+\sum_{j, m_j, j_a, j_b} \bigg[
+D^{J*}_{M_J\Omega}D^j_{m \Omega}
+|j m j_a j_b\rangle
+\\
+&+
+\mathcal{P}(-1)^{l_a+l_b+L-j+J}D^{J*}_{M_J-\Omega}
+D^j_{m,-\Omega}|j m j_a j_b\rangle \bigg]
+C_{L\Lambda S\Sigma}^{j\Omega}\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+There are a couple important relations for the Wigner D matrix here:
+
+\begin{equation}
+\begin{split}
+\sqrt{\frac{4\pi}{2\ell+1}}Y_{\ell \mu}\{\beta, \alpha\}=\sqrt{\frac{4\pi}{2\ell+1}}|\ell\mu\rangle
+=D^{\ell *}_{\mu 0} \{\alpha \beta \gamma\}
+=(-1)^{\mu}D^{\ell}_{-\mu 0} \{\alpha \beta \gamma\}
+\\
+D^{J*}_{M_J \Omega}\{\alpha,\beta,\gamma\} 
+=(-1)^{M_J-\Omega} D_{-M_J,-\Omega}^J\{\alpha,\beta,\gamma\}
+\\
+D_{-M_j,-\Omega}^{J}
+D_{m_j \Omega}^{j}
+= \sum_{\ell=|j-j'|}^{j+j'}
+C_{J,-M_J j m_j}^{\ell, -\mu}
+C_{J,-\Omega j \Omega}^{\ell 0}
+D^{\ell}_{-\mu,0}
+\end{split}
+\end{equation}
+
+We can use these on equation 25. Note that since $\hat{J}=\hat{j}+\hat{N}$, we have $M_J-m_j=\mu$. Therefore:
+
+\begin{equation}
+\begin{split}
+&|J M_J; L \Lambda L_a L_b; S \Sigma  S_1 S_2; \mathcal{P} \rangle
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\sqrt{\frac{2J+1}{8\pi^3}}
+\sum_{j, m_j, j_a, j_b} \bigg[
+(-1)^{M_J-\Omega} D_{-M_J,-\Omega}^J
+D^j_{m \Omega}
+|j m j_a j_b\rangle
+\\
+&+
+\mathcal{P}(-1)^{l_a+l_b+L-j+J}
+(-1)^{M_J+\Omega} D_{-M_J\Omega}^J
+D^j_{m,-\Omega}|j m j_a j_b\rangle \bigg]
+C_{L\Lambda S\Sigma}^{j\Omega}\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\sqrt{\frac{2J+1}{8\pi^3}}
+\sum_{j, m_j, j_a, j_b,\ell} \bigg[
+(-1)^{M_J-\Omega} 
+C_{J,-M_J j m_j}^{\ell, -\mu}
+C_{J,-\Omega j \Omega}^{\ell 0}
+D^{\ell}_{-\mu,0}
+|j m j_a j_b\rangle
+\\
+&+
+\mathcal{P}(-1)^{l_a+l_b+L-j+J}
+(-1)^{M_J+\Omega} 
+C_{J,-M_J j m_j}^{\ell, -\mu}
+C_{J\Omega j,-\Omega}^{\ell 0}
+D^{\ell}_{-\mu,0}
+|j m j_a j_b\rangle \bigg]
+C_{L\Lambda S\Sigma}^{j\Omega}\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\frac{1}{2\pi}
+\sum_{j, m_j, j_a, j_b} 
+\sum_{\ell=|j-j'|}^{j+j'} 
+(-1)^{-\mu+M_J-\Omega}
+\bigg[
+C_{J,-\Omega, j \Omega}^{\ell 0}
+\\
+&+\mathcal{P}(-1)^{l_a+l_b+L+J-j+2\Omega}
+C_{J\Omega j,-\Omega}^{\ell 0}
+\bigg]
+C_{J,-M_J j m_j}^{\ell, -\mu}|\ell\mu\rangle |j m j_a j_b\rangle
+\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{L \Lambda S \Sigma}^{j \Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+Note that there are some very funny clebsch gordon coefficients here that aren't quite what I want. I want to go from $|\ell\mu jm_j\rangle\rightarrow|J M_J \ell j\rangle$, so I need clebsch gordon coefficients of the form $C_{\ell \mu j m_j}^{J M_J}$, not the ones I have here. These are related though, and we need two other clebsch gordon symmetry relations:
+
+\begin{equation}
+\begin{split}
+C_{\ell \mu j m_j}^{J M_J} = \langle\ell \mu j m_j |J M_J \rangle = (-1)^{j+m_j}\sqrt{\frac{\breve{J}}{\breve{\ell}}}\langle J, -M_J j m_j |\ell, -\mu \rangle\\
+C_{J\Omega j,-\Omega}^{\ell 0} = (-1)^{J+j-\ell}C_{J,-\Omega j\Omega}^{\ell 0}\\
+C_{J\Omega j,-\Omega}^{\ell 0} = (-1)^{J+j-\ell}C_{j,-\Omega J\Omega}^{\ell 0}\\
+\end{split}
+\end{equation}
+
+This looks promising because it corrects the signs, but it looks less promising because of the extra funny factor there. But let's try it for a moment:
+
+\begin{equation}
+\begin{split}
+&|J M_J; L \Lambda L_a L_b; S \Sigma  S_1 S_2; \mathcal{P} \rangle
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\frac{1}{2\pi}
+\sum_{j, m_j, j_a, j_b} 
+\sum_{\ell=|j-j'|}^{j+j'} 
+(-1)^{j-\mu+M_J+m_j-\Omega}
+\bigg[
+(-1)^{2j+2J-2\ell}
+\\
+&+\mathcal{P}(-1)^{l_a+l_b+L+J-j+2\Omega}
+(-1)^{j+J-\ell}
+\bigg]
+C_{j,-\Omega J\Omega}^{\ell 0}
+C_{\ell \mu j m_j}^{J M_J}
+|\ell\mu\rangle |j m j_a j_b\rangle
+\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{L \Lambda S \Sigma}^{j \Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\frac{1}{2\pi}
+\sum_{j, m_j, j_a, j_b} 
+\sum_{\ell=|j-j'|}^{j+j'} 
+(-1)^{j-\mu+M_J+m_j-\Omega+2j+2J-2\ell}
+\bigg[\\
+&1+\mathcal{P}(-1)^{l_a+l_b+L-2j+2\Omega+\ell}
+\bigg]
+C_{j,-\Omega J\Omega}^{\ell 0}
+(-1)^{j+\ell-J}
+C_{j m_j\ell \mu}^{J M_J}
+|\ell\mu\rangle |j m j_a j_b\rangle
+\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{L \Lambda S \Sigma}^{j \Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\\
+=&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\frac{1}{2\pi}
+\sum_{j, m_j, j_a, j_b} 
+\sum_{\ell=|j-j'|}^{j+j'} 
+(-1)^{-\mu+M_J+m_j-\Omega+J-\ell}
+\bigg[\\
+&1+\mathcal{P}(-1)^{l_a+l_b+L-2j+2\Omega+\ell}
+\bigg]
+C_{j,-\Omega J\Omega}^{\ell 0}
+C_{j m_j\ell \mu}^{J M_J}
+|\ell\mu\rangle |j m j_a j_b\rangle
+\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{L \Lambda S \Sigma}^{j \Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}\\
+=??&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\frac{1}{2\pi}
+\sum_{j, m_j, j_a, j_b} 
+\sum_{\ell=|j-j'|}^{j+j'} 
+(-1)^{\ell-J-\Omega}
+\bigg[\\
+&1+\mathcal{P}(-1)^{l_a+l_b+L+\ell}
+\bigg]
+C_{j,-\Omega J\Omega}^{\ell 0}
+C_{j m_j\ell \mu}^{J M_J}
+ |j m j_a j_b\rangle|\ell\mu\rangle
+\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{L \Lambda S \Sigma}^{j \Omega} 
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+In the last step I assume that J, j, and Omega are integer values such that $(-1)^{2J}=1$ etc. This allows me to remove 2x factors in these phases, and flip signs of these quantum numbers as well as the $m_j$ projection which allowed me to cancel the $\mu, M_J, \text{ and } m_j$ terms in the overall phase. I also can't fully justify needing the flipped clebsch gordon coefficient in the second to last step, although this seems plausible to me if I just screwed up the order of the Wigner D matrices somehow. The order suggested by the text would have put the two matrices sandwhiching a state, so perhaps I screwed up the commutation rules which I don't know at that point and that caused issues. 
+
+\begin{equation}
+\begin{split}
+&|J M_J; L \Lambda L_a L_b; S \Sigma  S_1 S_2; \mathcal{P} \rangle=
+\\
+&\frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0}}}
+\frac{1}{2\pi}
+\sum_{j, m_j, j_a, j_b} 
+\sum_{\ell=|j-j'|}^{j+j'} 
+(-1)^{\ell-J-\Omega}
+\bigg[
+1+\mathcal{P}(-1)^{l_a+l_b+L+\ell}
+\bigg]
+|J M_J j \ell j_a j_b\rangle
+\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} 
+C_{j,-\Omega J\Omega}^{\ell 0}
+C_{L \Lambda S \Sigma}^{j \Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+This is extremely close at this point. At this point the only remaining issue is the extra L in the phase in the middle. 
+
+In the end, the conversion between case (a) and case (e) is then given by the following:
+\begin{equation}
+\langle j \ell j_a j_b | \Lambda S \Sigma p\rangle_J = (-1)^{\ell-\Omega-J} \frac{1+(-1)^{L_b+\ell+p}(1-\delta_{\Lambda,0}\delta_{\Sigma,0})}{\sqrt{2-\delta_{\Lambda,0}\delta_{\Sigma,0}}}\sqrt{\breve{S}\breve{j_a}\breve{j_b}\breve{L}} C_{j,-\Omega J\Omega}^{\ell 0}C_{L\Lambda S\Sigma}^{j\Omega}
+\begin{Bmatrix}
+L_a & S_a & j_a\\
+L_b & S_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\end{equation}
+
+This nasty relation allows you to calculation transformation matrices to convert all the case (e) basis states to case (a) in order to evaluate the hamiltonian for each value of $\ell$ and as a function of R. For the record I'm not sure using the 9j symbol here really makes things simpler, but okay. 
+
+For a given value of J, states can have either positive or negative total parity. It turns out that the results of these calculations result in pairs of closely spaced rotational energy levels which have different pairity, and so each state gets an additional label. States with parities $(-1)^J$ are said to have "e" parity, and states with pairities $-(-1)^J$ are said to have "f" parity. This scheme ensures that each state in the doublet has different such parity, and as well the "e" and "f" are independent of the hunds case basis used. In other words, the matrix elements above do not mix states of different "e/f" parity. This parity label has historically fluctuated and been the source of confusion in the field \cite{hornkohl_parity_2017,brown_labeling_1975}.
+
+In the end, I can use this calculation to calculate the rotational couplings, as shown in figure (2)
+
+\section{Hyperfine Rotation}
+
+The state given by paul is
+
+\begin{equation}
+\begin{split}
+|F M_F c \Lambda S \Sigma I \iota p\rangle \rightarrow \frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0}}} \sum_{\ell f f_a f_b}(-1)^{\ell-\phi-F}|F M_F \ell f c_a f_a c_b f_b\rangle\Big[1+(1-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0})\Big]
+C_{f -\phi F \phi}^{\ell 0} \\
+\langle f \phi f_a f_b | \Lambda_a \Lambda_b | c \Lambda \rangle \langle \Lambda_a \Lambda_b| c \Lambda \rangle XXXXX
+\end{split}
+\end{equation}
+
+There's at least one fairly obvious problem here which is the lack of a phase factor for the $(1-\delta)$ term. The term serves to zero terms that have the wrong parity of some sort here, and it doesn't do that. In the previous rotational papers, the phase of this term was $(-1)^{L_b+\ell +p}$. This term makes no explicit reference to $J$ so I think it should actually be the same here. The paper here might have wanted to be more general than this term, but for my purposes there's no need at the moment. Before I continue, I need to deal with the giant matrix element there. 
+
+
+There are 6 basic angular momentum and multiple ways to couple them to construct states of total angular momentum $f$. As there are so many angular momentum, it seems probably possible to write this big matrix element in terms of the 15j symbols, but there is vanishingly little resources on such symbols, so the better approach is to use the 9j symbols for the coupling of 4 angular momentum. 
+
+In general, suppose you have 4 angular momentum $j_i, i\in\{1,2,3,4\}$. Then, denote $\hat{j}_{ij}=\hat{j}_i+\hat{j}_j$, and $j_{1234}\equiv j_*$ for brevity. There is a common matrix element to consider between the coupling of these four angular momentum:
+
+\begin{equation}
+\langle j_{*} m_{j_{*}} j_{12}j_{34}|j_{*} m_{j_{*}}j_{13}j_{24}\rangle
+\equiv\sqrt{\breve{j}_{12}\breve{j}_{34}\breve{j}_{13}\breve{j}_{24}}
+\begin{Bmatrix}
+j_1 & j_2 & j_{13}\\
+j_3 & j_4 & j_{34}\\
+j_{13} & j_{24} & j_{*}\\
+\end{Bmatrix}
+\end{equation} 
+
+In the case here, there are two ways to construct the total electronic angular momentum $j$ (not using general notation here). We have $\hat{j}=\hat{l}_a+\hat{s}_a+\hat{l}_b+\hat{s}_b$, and we can first couple the two orbitatal angular momentums and spins to create states $|jm_j L S l_1 l_2 s_1 s_2 \rangle\equiv|j m_j L S\rangle$, or we can construct the individual electronic angular momentum first and create states $|j m_j j_1 j_2 l_1 s_1 l_2 s_2\rangle\equiv|j m_j j_1 j_2\rangle$. Similarly, we have four angular momentum $j_a, j_b, i_a, $ and $i_b$ to construct states of good $f$ in two critical ways to create two bases: $|f m_f j I\rangle$ or $|f m_f f_a f_b\rangle$. This is going to lead to two wigner 9j symbols. And this is suggestive that we are looking to construct the matrix elements $\langle f m_f f_1 f_2 | f m_f j I\rangle$ and $\langle j m_j j_1 j_2| j m_J L S\rangle$ out of the given matrix element, both of which will reduce to clesch gordon coefficients. From here, it's just basic angular momentum algebra to get to the desired result. 
+
+\begin{equation}
+\begin{split}
+\langle f \phi f_a f_b |\Lambda_a \Lambda_b S\Sigma I\iota\rangle
+\xrightarrow{R\rightarrow\infty}
+\langle f \phi f_a f_b |l_a\Lambda_a l_b\Lambda_b S\Sigma I\iota\rangle\\
+= \langle f \phi f_a f_b | \Bigg(\sum_{L} C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} |L \Lambda\rangle\Bigg) | S\Sigma I\iota\rangle\\
+= \sum_{L} C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} \langle f \phi f_a f_b | \Big(\sum_{j}C_{L\Lambda S\Sigma}^{j\Omega} |j\Omega L S\rangle\Big) | I\iota\rangle\\
+= \sum_{L, j} C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} C_{L\Lambda S\Sigma}^{j\Omega} \langle f \phi f_a f_b | \Bigg(\sum_{j_1 j_2} |j\Omega j_1 j_2 \rangle\langle j\Omega j_1 j_2 |j\Omega L S\rangle\Bigg) | I\iota\rangle\\
+= \sum_{L, j, j_1 j_2} 
+C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} 
+C_{L\Lambda S\Sigma}^{j\Omega} 
+\langle f \phi f_a f_b | |j\Omega j_1 j_2 \rangle | I\iota\rangle
+\sqrt{\breve{j}_1\breve{j_2}\breve{L}\breve{S}}
+\begin{Bmatrix}
+l_a & s_a & j_a\\
+l_b & s_b & j_b\\
+L & S & j
+\end{Bmatrix}\\
+= \sum_{L, j, j_1 j_2} 
+C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} 
+C_{L\Lambda S\Sigma}^{j\Omega} 
+\langle f \phi f_a f_b | \Bigg(\sum_{f'} C_{j\Omega I \iota}^{f' \phi} |f' \phi j I\rangle\Bigg)
+\sqrt{\breve{j}_1\breve{j_2}\breve{L}\breve{S}}
+\begin{Bmatrix}
+l_a & s_a & j_a\\
+l_b & s_b & j_b\\
+L & S & j
+\end{Bmatrix}\\
+= \sum_{L, j, j_1 j_2} 
+C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} 
+C_{L\Lambda S\Sigma}^{j\Omega} 
+ C_{j\Omega I \iota}^{f \phi}
+\langle f \phi f_a f_b |f \phi j I\rangle
+\sqrt{\breve{j}_1\breve{j_2}\breve{L}\breve{S}}
+\begin{Bmatrix}
+l_a & s_a & j_a\\
+l_b & s_b & j_b\\
+L & S & j
+\end{Bmatrix}\\
+= \sum_{L, j, j_1 j_2} 
+\bigg(
+C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} 
+C_{L\Lambda S\Sigma}^{j\Omega} 
+C_{j\Omega I \iota}^{f \phi}
+\bigg)
+\sqrt{\breve{j}_1\breve{j_2}\breve{f}_1\breve{f_2}
+\breve{L}\breve{S}\breve{J}\breve{I}}
+\begin{Bmatrix}
+l_a & s_a & j_a\\
+l_b & s_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\begin{Bmatrix}
+j_a & i_a & f_a\\
+j_b & i_b & f_b\\
+j & I & f
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+
+Therefore, I plug in the phase factor discussed above, substitue the giant matrix element, and simplify that the last matrix element above is unity, to get
+
+\begin{equation}
+\begin{split}
+|F M_F c \Lambda S \Sigma I \iota p\rangle \rightarrow \frac{1}{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0}}} \sum_{\ell f f_a f_b}(-1)^{\ell-\phi-F}
+|F M_F \ell f c_a f_a c_b f_b\rangle
+\Big[1+(-1)^{L_b+\ell+p}(1-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0})\Big]
+C_{f -\phi F \phi}^{\ell 0} \\
+\times\sum_{L, j, j_1 j_2} 
+\bigg(
+C^{L\Lambda}_{l_a \Lambda_a, l_b \Lambda_b} 
+C_{L\Lambda S\Sigma}^{j\Omega} 
+C_{j\Omega I \iota}^{f \phi}
+\bigg)
+\sqrt{\breve{j}_1\breve{j_2}\breve{f}_1\breve{f_2}
+\breve{L}\breve{S}\breve{J}\breve{I}}
+\begin{Bmatrix}
+l_a & s_a & j_a\\
+l_b & s_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\begin{Bmatrix}
+j_a & i_a & f_a\\
+j_b & i_b & f_b\\
+j & I & f
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+And therefore I can calculate the matrix element:
+
+\begin{equation}
+\begin{split}
+\langle F M_F \ell f c_a f_a c_b f_b |F M_F c \Lambda S \Sigma I \iota p\rangle
+\\
+= 
+(-1)^{\ell-\phi-F}
+\frac{\Big[1+(-1)^{L_b+\ell+p}(1-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0})\Big]}
+{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0}}} 
+C_{f -\phi F \phi}^{\ell 0} 
+\\
+\times\sum_{j, j_1 j_2} 
+\bigg(
+C_{L\Lambda S\Sigma}^{j\Omega} 
+C_{j\Omega I \iota}^{f \phi}
+\bigg)
+\sqrt{\breve{j}_1\breve{j_2}\breve{f}_1\breve{f_2}
+\breve{L}\breve{S}\breve{J}\breve{I}}
+\begin{Bmatrix}
+l_a & s_a & j_a\\
+l_b & s_b & j_b\\
+L & S & j
+\end{Bmatrix}
+\begin{Bmatrix}
+j_a & i_a & f_a\\
+j_b & i_b & f_b\\
+j & I & f
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+I set $l_a=0, l_b=1, L=1, s_a=s_b=1/2,j_a=1/2$ as the unique values for singly excited alkali metals, and $i_a=i_b=3/2$ for rubidium 87.
+
+\begin{equation}
+\begin{split}
+\langle F M_F \ell f c_a f_a c_b f_b |F M_F c \Lambda S \Sigma I \iota p\rangle
+\\
+= 
+(-1)^{\ell-\phi-F}
+\frac{\Big[1+(-1)^{L_b+\ell+p}(1-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0})\Big]}
+{\sqrt{2-\delta_{\Lambda 0}\delta_{\Sigma 0} \delta_{\iota 0}}} 
+C_{f -\phi F \phi}^{\ell 0} 
+\\
+\times\sum_{j, j_2} 
+\bigg(
+C_{L\Lambda S\Sigma}^{j\Omega} 
+C_{j\Omega I \iota}^{f \phi}
+\bigg)
+\sqrt{2\breve{j_2}\breve{f}_1\breve{f_2}
+\breve{L}\breve{S}\breve{J}\breve{I}}
+\begin{Bmatrix}
+0 & 1/2 & 1/2\\
+1 & 1/2 & j_b\\
+1 & S & j
+\end{Bmatrix}
+\begin{Bmatrix}
+1/2 & 3/2 & f_a\\
+j_b & 3/2 & f_b\\
+j & I & f
+\end{Bmatrix}
+\end{split}
+\end{equation}
+
+I'm reasonably confident that this result is correct. I'm a little concerned about the sum over $j$ and $j_b$. I think I may e able to remove the sum over $j_b$ at least since I think that $j_b$ is implcitly known from knowing $f_b$ since the complete state would normally be $|f_b, m_{f_b}, j_b, i_b, s_b, l_b\rangle$. Note that for levels of so-called "e" parity are to have total parity of $(-1)^F$, and levels of "f" parity have total parity $-(-1)^F$. 
+
+Before, the rotational hamiltonian only coupled states of the same J, so in this case, same F. in the fine structure case, we had $j_a=1/2, j_b\in\{1/2,3/2\}$ and therefore $j\in\{0,1,2\}$ and now we have $f_a\in\{1,2\}, f_b\in\{0,1,2,3\}$ and therefore $f\in\{0,1,2,3,4,5\}$. 
+
+Paul reports in an old email conversation that for $F=0,1,2,3,4, $ and $5$ or larger there are $19, 53, 77, 90, 95, $ and $96$ states respectively. I think that these states only have F and p quantum numbers. 
+
+\bibliography{ShortBib}
+
+\end{document}

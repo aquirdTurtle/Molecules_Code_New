@@ -1,0 +1,48 @@
+%\documentclass{article}
+\documentclass[prl, longbibliography, aps, 10pt]{revtex4-2}
+\usepackage{graphicx}
+\usepackage{makecell}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\begin{document}
+
+\title{Mark's Notes on 3-Body Calculations}
+\author{Mark O. Brown}
+
+\begin{abstract}
+Here are some brief notes on how I'm trying to calculate 3-body energies.
+\end{abstract}
+
+\maketitle
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Intro}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The main idea here is fairly simple. Suppose we have three atoms. Then, only looking at fine structure (at least for the moment), at far distances the eigenstates should be product states of the atomic basis.
+\begin{equation}
+|\psi\rangle = |j_1,m_{j1}, l_1, s_1\rangle|j_2,m_{j2}, l_2, s_2\rangle|j_3,m_{j3}, l_3, s_3\rangle
+\end{equation}
+
+Where the quantization axis is arbitrary. The fine-structure interactions should be diagonal in this basis. When the atoms are close to each other, but still somewhat far from each other so that there's no wavefunction overlap, you expect dipole-dipole interactions between all of the individual atoms. Thus the hamiltonian is
+\begin{equation}
+H = H_{1,2,3}^{FS} + H^{BO}_{12}+H^{BO}_{13}+H^{BO}_{23}
+\end{equation}
+
+Where the commmas and lack of commas in the subscripts of the above hamiltonians are meant to indicate whethr the hamiltonian is between interacting atoms or not. These dipole interactions are diagonal in the Bohr-oppenheimer basis for that pair of atoms. So, the task is simply to do a frame transformation of each of these three later hamiltonian into the basis above. Then the hamiltonians can be added and diagonalized.
+
+I've done the first step of this which is to represent one of the bohr-oppenheimer hamiltonians in terms of the atomic basis, but I have more to do here. 
+
+I need to think a bit more as to what the proper way to deal with the single excitation between the three atoms is.
+
+%
+\section{Results}
+%
+
+
+\bibliography{ShortBib}
+
+\end{document}
