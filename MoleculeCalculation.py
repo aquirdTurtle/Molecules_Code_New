@@ -236,8 +236,7 @@ def caseASymHfsToMostlySym(state, mostlySymBasis, indexes=False):
         stateMostlySym1['Sigma'] = stateMostlySym1['Omega'] - stateMostlySym1['Lambda']
         for key in ['Phi','Iota','Omega','Lambda','Sigma']:
             stateMostlySym2[key] = -stateMostlySym1[key]        
-                
-        # Im confused about why this seems to need to involve kappa_BO to work.
+        # Im confused about why this seems to need to involve kappa_FS to work.
         sign = '+' if state['kappa_HFS']*state['kappa_FS']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
         #sign = '+' if state['kappa_HFS']*(-1)**(state['I']-state['|Iota|'])==1 else '-'
         #sign = '+' if state['kappa_HFS'] == 1 else '-'
@@ -344,8 +343,7 @@ def create_jiToF_Op(jiBasis, fBasis):
     """
     creates the matrix |f m_f j i><j m_j i m_i| transformation matrix for the given bases.
     expects single atom bases
-    """
-    
+    """    
     assert(len(jiBasis)==len(fBasis))
     jiToF = np.zeros((len(jiBasis),len(fBasis)))
     for jnum, jiState in enumerate(jiBasis):
@@ -472,24 +470,6 @@ def caseAToLsi_2Transf( caseABasis, lsiBasis2 ):
             
             transformation[stateA_n, stateLsi_n] = p_**(l_b)*oalCoef*spinCoef*nuclearCoef
             
-            """
-            # CG notation is <j_a,mj_a,j_b,mj_b|j3,mj3>
-            oalCoef = float(CG(la,mla,lb,mlb,L,Lambda).doit())
-            spinCoef = float(CG(sa,msa,sb,msb,S,Sigma).doit())
-            nuclearCoef = float(CG(ia,mia,ib,mib,I,Iota).doit())
-            # I need to remember how this is organized...
-            state1_a = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
-            bState1 = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
-            state2_a = getColumnState(lsiBasis, {'l_x':lb,'m_l_x':mlb,'s_x':sa,'m_s_x':msa, 'i_x':ia,'m_i_x':mia})
-            bState2 = getColumnState(lsiBasis, {'l_x':la,'m_l_x':mla,'s_x':sb,'m_s_x':msb, 'i_x':ib,'m_i_x':mib})
-            if basisChange is not None:
-                state1_a = basisChange @ state1_a
-                bState1 = basisChange @ bState1
-                state2_a = basisChange @ state2_a
-                bState2 = basisChange @ bState2
-            newpart = nuclearCoef*oalCoef*spinCoef * (np.kron(state1_a,state1_b) + p_ * np.kron(state2_a,state2_b))
-            state += newpart
-            """
     return transformation
             
 
